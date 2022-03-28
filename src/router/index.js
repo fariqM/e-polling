@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import MapsView from '../views/Maps.vue'
+import Polling from '../views/Polling'
 
 
 
@@ -17,6 +18,11 @@ const routes = [
     path: '/maps',
     name: 'maps',
     component: MapsView
+  },
+  {
+    path: '/polling/:pollingUrl',
+    name: 'polling',
+    component: Polling
   },
   {
     path: '/about',
