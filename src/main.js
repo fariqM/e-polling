@@ -5,8 +5,12 @@ import store from './store'
 import vuetify from './plugins/vuetify'
 import 'roboto-fontface/css/roboto/roboto-fontface.css'
 import '@mdi/font/css/materialdesignicons.css'
+import AXIOS from "axios";
+
+window._ = require('./plugins/lodash_plugins/lodash.min.js');
 
 Vue.config.productionTip = false
+window.axios = AXIOS;
 
 new Vue({
   router,
