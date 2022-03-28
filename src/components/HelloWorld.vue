@@ -16,7 +16,7 @@
         class="mb-5"
         cols="12"
       >
-       <v-btn :to="{name:'maps'}">Go to Map</v-btn>
+       <v-btn :to="{name:'maps'}">Go to Map Testing</v-btn>
       </v-col>
 
     </v-row>
