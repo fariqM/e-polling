@@ -2,16 +2,18 @@
 	<v-container>
 		<v-subheader
 			class="pa-0"
-			style="font-size: 1.2rem; font-weight: 500; color: aliceblue"
+			style="font-size: 1.2rem; font-weight: 500; color: #f0f8ff"
 			>Create New Poll</v-subheader
 		>
 		<v-row>
 			<v-col cols="10" md="10" sm="10">
 				<v-text-field
+					color="primary"
 					placeholder="Question"
 					dense
 					:hide-details="true"
 					solo-inverted
+          style="border-radius:0px"
 				></v-text-field>
 			</v-col>
 
@@ -27,6 +29,7 @@
 					dense
 					:hide-details="true"
 					solo-inverted
+          style="border-radius:0px"
 				></v-text-field>
 			</v-col>
 
@@ -44,6 +47,7 @@
 						:hide-details="true"
 						solo-inverted
 						v-model="answer.text"
+            style="border-radius:0px"
 					></v-text-field>
 				</v-col>
 
@@ -54,16 +58,18 @@
 				</v-col>
 			</template>
 
-			<v-col cols="10" md="10" sm="10" >
-				<v-text-field
-					placeholder="Answer"
-					dense
-          solo
-          persistent-placeholder
-          background-color="transparent"
-					prepend-icon="mdi-plus"
-				></v-text-field>
+			<v-col cols="12" md="12" sm="12">
+				<v-btn tile small class="pl-2 prim-grad" block @click="addQuestion">
+					<v-icon>mdi-plus</v-icon>
+					Add Question
+				</v-btn>
 			</v-col>
+
+			<!-- <v-col cols="10" md="10" sm="10" class="noselect">
+				<div>
+          Add Question
+        </div>
+			</v-col> -->
 		</v-row>
 		<!-- <div class="d-flex justify-center align-center" style="height: 100%">
       <v-text-field placeholder="Question"></v-text-field>
@@ -75,7 +81,7 @@
 export default {
 	data() {
 		return {
-			answers: {},
+			answers: [],
 		};
 	},
 	mounted() {
@@ -93,6 +99,14 @@ export default {
 		addImage(idx) {
 			console.log(idx);
 		},
+    addQuestion(){
+      const question = {
+        text: "",
+				img: null,
+      }
+
+      this.answers.push(question)
+    }
 	},
 };
 </script>

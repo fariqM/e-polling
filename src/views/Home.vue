@@ -29,7 +29,7 @@
 					v-model="pol_address"
 					:error-messages="err_msg"
 				></v-text-field>
-				<v-btn tile @click="goToPoll" color="primary">Go to Polling</v-btn>
+				<v-btn tile @click="goToPoll" class="prim-grad">Go to Polling</v-btn>
 			</v-col>
 		</v-row>
 	</v-container>

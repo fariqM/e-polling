@@ -10,10 +10,9 @@
 export default {
 	name: "App",
 
-	data: () => ({
-	}),
+	data: () => ({}),
 	mounted() {
-		// this.$vuetify.theme.dark = true;
+		this.$vuetify.theme.dark = true;
 	},
 };
 </script>
@@ -30,5 +29,8 @@ export default {
 	-ms-user-select: none; /* Internet Explorer/Edge */
 	user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
+}
+.prim-grad {
+background: linear-gradient(145deg, rgba(16,141,223,1) 0%, rgba(8,115,191,1) 41%, rgba(12,59,102,1) 100%);
 }
 </style>
