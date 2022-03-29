@@ -7,7 +7,6 @@ export default {
 	beforeRouteEnter(to, from, next) {
 		// next()
 		next((vm) => {
-			console.log(vm.$router);
 			vm.$router.push({ name: "home" });
 			// access to component instance via `vm`
 		});

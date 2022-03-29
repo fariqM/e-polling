@@ -1,9 +1,10 @@
 <template>
 	<div style="height: 100%; width:100%">
-		<v-app-bar color="deep-purple accent-4" min-width="100%">
+		<v-app-bar color="primary">
 			<v-btn icon>
-				<v-icon>mdi-magnify</v-icon>
+				<v-icon>mdi-chevron-left</v-icon>
 			</v-btn>
+             <v-toolbar-title>New Poll</v-toolbar-title>
 		</v-app-bar>
 		<v-main style="height: 100%">
 			<v-container>
