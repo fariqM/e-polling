@@ -15,6 +15,9 @@ export default {
   data: () => ({
     //
   }),
+  mounted(){
+    this.$vuetify.theme.dark = true
+  }
 };
 </script>
 

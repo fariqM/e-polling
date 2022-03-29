@@ -1,7 +1,11 @@
 <template>
   <v-main style="height:100%">
       <div class="d-flex justify-center align-center" style="height:100%">
-          {{ polling_params }}
+         <div class="text-center">
+              receiving from URL : 
+              <br>
+              <b>https://polling-pol.site/p/{{ polling_params }}</b>
+         </div>
       </div>
   </v-main>
 </template>

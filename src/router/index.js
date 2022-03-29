@@ -20,7 +20,7 @@ const routes = [
     component: MapsView
   },
   {
-    path: '/polling/:pollingUrl',
+    path: '/p/:pollingUrl',
     name: 'polling',
     component: Polling
   },

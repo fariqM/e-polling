@@ -1,5 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target" : { "namespace": "android_app", "package_name": "com.epolling.app",
-               "sha256_cert_fingerprints": ["CA:0E:B6:79:F6:B6:0F:5B:34:25:9C:A2:82:EB:71:A1:49:06:C3:74:0F:15:4D:F2:BB:80:75:9E:6A:42:D0:C7"] }
-}]
