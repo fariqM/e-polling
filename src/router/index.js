@@ -1,8 +1,13 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import HomeView from '../views/Home.vue'
 import MapsView from '../views/Maps.vue'
 import Polling from '../views/Polling'
+import History from '../views/History'
+import Account from '../views/Account'
+import NewPoll from '../views/New'
+import Landing from '../views/Landing'
+import BaseMenuLayout from '../views/Layout'
 
 
 
@@ -11,8 +16,35 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'landing',
+    component: Landing
+  },
+  {
+    path: '/app',
+    name: 'app.menu',
+    component: BaseMenuLayout,
+    children: [
+      {
+        path: 'home',
+        name: 'home',
+        component: HomeView
+      },
+      {
+        path: 'history',
+        name: 'history',
+        component: History
+      },
+      {
+        path: 'new-poll',
+        name: 'new.poll',
+        component: NewPoll
+      },
+      {
+        path: 'account',
+        name: 'account',
+        component: Account
+      },
+    ]
   },
   {
     path: '/maps',
@@ -23,14 +55,6 @@ const routes = [
     path: '/p/:pollingUrl',
     name: 'polling',
     component: Polling
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
   },
 ]
 

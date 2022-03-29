@@ -1,22 +1,23 @@
 <template>
 	<v-container>
 		<v-row class="text-center" align="center">
-			<v-col cols="12">
+			<v-col cols="12" class="pa-0">
 				<v-img
 					:src="require('../assets/poll.png')"
-					class="my-3"
+					class="my-3 "
 					contain
-					height="200"
+					height="250"
 				/>
 			</v-col>
-
-			<v-col class="" cols="12">
-				<div class="text-h3" style="font-weight: 600">Join polling</div>
+			<v-col class="pa-0" cols="12">
+				<div class="noselect" style="font-weight: 600; font-size: 2.3rem;">
+					Join polling
+				</div>
 				<!-- <div class="d-flex justify-space-around align-center">
 					<v-btn :to="{ name: 'maps' }">Go to Map Testing</v-btn>
 				</div> -->
 			</v-col>
-			<v-col cols="12">
+			<v-col cols="12" class="noselect">
 				<v-text-field
 					placeholder="Insert a link or polling code"
 					label="Polling Address"
@@ -34,13 +35,5 @@
 </template>
 
 <script>
-export default {
-	data: () => ({
-		pol_address: "tes",
-	}),
-
-	mounted() {
-		this.pol_address = "";
-	},
-};
+export default {};
 </script>

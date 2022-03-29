@@ -4,10 +4,12 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
 import './scss/var.scss'
-// import '@mdi/font/css/materialdesignicons.css'
+import '@mdi/font/css/materialdesignicons.css'
 import AXIOS from "axios";
 import { App, URLOpenListenerEvent } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
+window.platform = Capacitor.getPlatform();
 window._ = require('./plugins/lodash_plugins/lodash.min.js');
 
 Vue.config.productionTip = false
