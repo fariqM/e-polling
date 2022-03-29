@@ -23,7 +23,7 @@
 				</v-btn>
 			</v-col>
 
-			<v-col cols="10" md="10" sm="10">
+			<v-col cols="12" md="12" sm="12">
 				<v-text-field
 					placeholder="Description"
 					dense
