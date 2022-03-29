@@ -38,7 +38,11 @@ export default {
 	name: "HelloWorld",
 
 	data: () => ({
-    pol_address:"",
+    pol_address:"tes",
   }),
+
+  mounted(){
+    this.pol_address = ""
+  },
 };
 </script>
