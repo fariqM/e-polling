@@ -23,13 +23,15 @@
 					class="mb-4"
 					clearable
 					@click="inputFocus"
-					style="border-radius:0px"
+					style="border-radius: 0px"
 					placeholder="Insert a link or polling code"
 					label="Polling Address"
 					v-model="pol_address"
 					:error-messages="err_msg"
 				></v-text-field>
-				<v-btn tile @click="goToPoll" class="prim-grad">Go to Polling</v-btn>
+				<v-btn tile @click="goToPoll" class="prim-grad" :loading="btnLoading"
+					>Go to Polling</v-btn
+				>
 			</v-col>
 		</v-row>
 	</v-container>
@@ -41,22 +43,27 @@ export default {
 		return {
 			pol_address: "",
 			err_msg: "",
+			btnLoading: false,
 		};
 	},
 	methods: {
 		goToPoll() {
 			if (this.pol_address === "") {
-				this.err_msg = "Please inser a url polling";
+				this.err_msg = "Please inser a polling url";
 			} else {
-				this.$router.push({
-					name: "polling",
-					params: { pollingUrl: this.pol_address },
-				});
+				this.btnLoading = true;
+				setTimeout(() => {
+					this.btnLoading = false;
+					this.$router.push({
+						name: "polling",
+						params: { pollingUrl: this.pol_address },
+					});
+				}, 1200);
 			}
 		},
-		inputFocus(){
-			this.err_msg = "Please inser a url polling";
-		}
+		inputFocus() {
+			this.err_msg = "";
+		},
 	},
 };
 </script>

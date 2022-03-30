@@ -1,10 +1,10 @@
 <template>
-	<div style="height: 100%; width:100%">
+	<div style="height: 100%; width: 100%">
 		<v-app-bar color="primary">
-			<v-btn icon>
+			<v-btn icon @click="navigation_back">
 				<v-icon>mdi-chevron-left</v-icon>
 			</v-btn>
-             <v-toolbar-title>New Poll</v-toolbar-title>
+			<v-toolbar-title>Polling Title</v-toolbar-title>
 		</v-app-bar>
 		<v-main style="height: 100%">
 			<v-container>
@@ -30,6 +30,12 @@ export default {
 	mounted() {
 		this.polling_params = this.$router.history.current.params.pollingUrl;
 	},
+	methods: {
+		navigation_back() {
+			this.$router.push({name: 'home'})
+		},
+	},
+	
 };
 </script>
 
