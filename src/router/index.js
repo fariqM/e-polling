@@ -8,6 +8,7 @@ import Account from '../views/Account'
 import NewPoll from '../views/New'
 import Landing from '../views/Landing'
 import BaseMenuLayout from '../views/Layout'
+import MyPoll from '../views/MyPolling'
 
 
 
@@ -36,8 +37,8 @@ const routes = [
       },
       {
         path: 'new-poll',
-        name: 'new.poll',
-        component: NewPoll
+        name: 'my.poll',
+        component: MyPoll
       },
       {
         path: 'account',
@@ -45,6 +46,11 @@ const routes = [
         component: Account
       },
     ]
+  },
+  {
+    path: '/new-poll',
+    name: 'new.poll',
+    component: NewPoll
   },
   {
     path: '/maps',

@@ -1,7 +1,7 @@
 <template>
-	<div>
-		<v-main>
-			<v-container>
+	<div style="height: 100%">
+		<v-main style="height: 100%">
+			<v-container fluid style="height: 100%">
 				<router-view />
 			</v-container>
 		</v-main>
@@ -33,7 +33,7 @@
 				value="poll"
 				:color="value==='poll' ? '#535353': ''"
 				style="height: 100%"
-				:to="{ name: 'new.poll' }"
+				:to="{ name: 'my.poll' }"
 			>
 				<span>New Poll</span>
 

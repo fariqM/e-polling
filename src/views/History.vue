@@ -1,7 +1,7 @@
 <template>
-  <v-container>
+  <div>
       History
-  </v-container>
+  </div>
 </template>
 
 <script>

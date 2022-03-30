@@ -1,7 +1,7 @@
 <template>
-  <v-container>
+  <div>
       account
-  </v-container>
+  </div>
 </template>
 
 <script>

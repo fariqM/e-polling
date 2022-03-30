@@ -33,4 +33,9 @@ export default {
 .prim-grad {
 background: linear-gradient(145deg, rgba(16,141,223,1) 0%, rgba(8,115,191,1) 41%, rgba(12,59,102,1) 100%);
 }
+.ellipsis-text {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 </style>
