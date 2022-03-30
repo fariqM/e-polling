@@ -227,22 +227,27 @@ export default {
 		},
 		openImg(idx) {
 			console.log(idx);
-			const takePicture = async () => {
-				const image = await Camera.getPhoto({
-					quality: 90,
-					allowEditing: true,
-					resultType: CameraResultType.Uri,
-				});
+			Camera.getPhoto({
+				quality: 90,
+				allowEditing: true,
+				resultType: CameraResultType.Uri,
+			}).then((result) => {
+				this.imgSrc = result.webPath
+				console.log(result);
+			});
+			// const takePicture = async () => {
 
-				// image.webPath will contain a path that can be set as an image src.
-				// You can access the original file using image.path, which can be
-				// passed to the Filesystem API to read the raw data of the image,
-				// if desired (or pass resultType: CameraResultType.Base64 to getPhoto)
-				var imageUrl = image.webPath;
+			// 	// const image = await
 
-				// Can be set to the src of an image now
-				this.imgSrc= imageUrl;
-			};
+			// 	// // image.webPath will contain a path that can be set as an image src.
+			// 	// // You can access the original file using image.path, which can be
+			// 	// // passed to the Filesystem API to read the raw data of the image,
+			// 	// // if desired (or pass resultType: CameraResultType.Base64 to getPhoto)
+			// 	// var imageUrl = image.webPath;
+
+			// 	// // Can be set to the src of an image now
+			// 	// this.imgSrc= imageUrl;
+			// };
 		},
 		addQuestion() {
 			const question = {

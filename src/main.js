@@ -8,6 +8,7 @@ import '@mdi/font/css/materialdesignicons.css'
 import AXIOS from "axios";
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
 
 window.platform = Capacitor.getPlatform();
 window._ = require('./plugins/lodash_plugins/lodash.min.js');
@@ -21,6 +22,8 @@ new Vue({
   vuetify,
   render: h => h(Main)
 }).$mount('#app')
+
+defineCustomElements(window);
 
 App.addListener('appUrlOpen', function (event) {
   // Example url: https://beerswift.app/tabs/tabs2
