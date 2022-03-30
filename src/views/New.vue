@@ -229,7 +229,7 @@ export default {
 			console.log(idx);
 			Camera.getPhoto({
 				quality: 90,
-				allowEditing: true,
+				allowEditing: false,
 				resultType: CameraResultType.Uri,
 			}).then((result) => {
 				this.imgSrc = result.webPath
