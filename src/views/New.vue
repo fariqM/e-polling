@@ -7,6 +7,7 @@
 				</v-btn>
 			</template>
 		</v-speed-dial>
+
 		<v-app-bar color="prim-grad" dense absolute>
 			<v-btn icon @click="navigation_back">
 				<v-icon>mdi-chevron-left</v-icon>
@@ -15,64 +16,71 @@
 		</v-app-bar>
 		<v-main>
 			<v-container fluid>
-				<!-- <v-subheader
-					class="pa-0"
-					style="font-size: 1.2rem; font-weight: 500; color: #f0f8ff"
-					></v-subheader
-				> -->
 				<v-row class="mt-10">
-					<v-col cols="10" md="10" sm="10" class="py-2">
+					<!-- question section -->
+					<v-col cols="10" md="10" class="py-2">
 						<v-text-field
 							color="primary"
 							placeholder="Question"
 							dense
 							:hide-details="true"
 							solo-inverted
-							v-model="question"
+							v-model="question.title"
 							style="border-radius: 0px"
 						></v-text-field>
 					</v-col>
 
-					<v-col cols="2" md="10" sm="10" class="py-2">
-						<v-menu offset-y>
+					<v-col
+						cols="2"
+						md="10"
+						class="py-2"
+						:class="question.img == null ? '' : 'd-flex justify-center'"
+					>
+						<v-btn
+							icon
+							tile
+							@click="pickImg(0, 'question')"
+							v-if="question.img == null"
+						>
+							<v-icon size="30">mdi-image-plus</v-icon>
+						</v-btn>
+						<v-menu offset-y v-else>
 							<template v-slot:activator="{ on, attrs }">
-								<v-btn icon tile v-bind="attrs" v-on="on">
-									<v-icon size="30">mdi-image-plus</v-icon>
-								</v-btn>
+								<v-avatar size="40" tile class="pa-0" v-bind="attrs" v-on="on">
+									<v-img :src="question.img"></v-img>
+								</v-avatar>
 							</template>
 							<v-list light>
 								<v-list-item
 									v-for="(item, i) in imgMenu"
 									:key="i"
-									@click="openImg(i)"
+									@click="imgClicked(i, 'question')"
 								>
 									<v-list-item-title>{{ item.title }}</v-list-item-title>
 								</v-list-item>
 							</v-list>
 						</v-menu>
-
-						<!-- <v-btn icon tile>
-							<v-icon size="30">mdi-image-plus</v-icon>
-						</v-btn> -->
 					</v-col>
 
-					<v-col cols="12" md="12" sm="12" class="py-2">
+					<v-col cols="12" md="12" class="py-2">
 						<v-text-field
 							placeholder="Description"
 							dense
 							:hide-details="true"
 							solo-inverted
 							style="border-radius: 0px"
-							v-model="description"
+							v-model="question.description"
 						></v-text-field>
 					</v-col>
 
-					<v-col cols="12" md="12" sm="12" class="py-2">
+					<v-col cols="12" md="12" class="py-2">
 						<v-divider dark style="border-color: #f0f8ff59" />
 					</v-col>
+					<!-- end question section -->
 
+					<!-- answer section -->
 					<template v-for="(answer, i) in answers">
-						<v-col cols="10" md="10" sm="10" :key="i" class="py-2">
+						<v-col cols="10" md="10" :key="i" class="py-2">
 							<v-text-field
 								placeholder="Answer"
 								dense
@@ -85,21 +93,50 @@
 							></v-text-field>
 						</v-col>
 
-						<v-col cols="2" md="10" sm="10" :key="'img-' + i" class="py-2">
-							<v-btn icon tile @click="addImage(i)">
+						<v-col cols="2" md="10" :key="'img-' + i" class="py-2">
+							<v-btn
+								icon
+								tile
+								@click="pickImg(i, 'answer')"
+								v-if="answer.img == null"
+							>
 								<v-icon size="30">mdi-image-plus</v-icon>
 							</v-btn>
+
+							<v-menu offset-y v-else>
+								<template v-slot:activator="{ on, attrs }">
+									<v-avatar
+										size="40"
+										tile
+										class="pa-0"
+										v-bind="attrs"
+										v-on="on"
+									>
+										<v-img :src="answer.img"></v-img>
+									</v-avatar>
+								</template>
+								<v-list light>
+									<v-list-item
+										v-for="(item, i) in imgMenu"
+										:key="i"
+										@click="imgClicked(i, 'answer')"
+									>
+										<v-list-item-title>{{ item.title }}</v-list-item-title>
+									</v-list-item>
+								</v-list>
+							</v-menu>
 						</v-col>
 					</template>
+					<!-- end answer section -->
 
-					<v-col cols="12" md="12" sm="12" class="py-2">
-						<v-btn tile small class="pl-2 prim-grad" block @click="addQuestion">
+					<v-col cols="12" md="12" class="py-2">
+						<v-btn tile small class="pl-2 prim-grad" block @click="addAnswer">
 							<v-icon>mdi-plus</v-icon>
 							Add Answer
 						</v-btn>
 					</v-col>
 
-					<v-col cols="12" md="12" sm="12" class="py-2">
+					<v-col cols="12" md="12" class="py-2">
 						<v-divider dark style="border-color: #f0f8ff59" />
 					</v-col>
 				</v-row>
@@ -111,7 +148,7 @@
 				>
 
 				<v-row>
-					<v-col cols="10" md="10" sm="10" class="pt-2 pb-1">
+					<v-col cols="10" md="10" class="pt-2 pb-1">
 						<v-dialog
 							ref="dialog"
 							v-model="modal"
@@ -140,40 +177,79 @@
 						></v-text-field>
 					</v-col>
 
-					<v-col cols="2" md="10" sm="10" class="pt-2 pb-1">
+					<v-col cols="2" md="10" class="pt-2 pb-1">
 						<v-btn icon tile @click="modal = true">
 							<v-icon size="30">mdi-calendar-clock-outline</v-icon>
 						</v-btn>
 					</v-col>
 
-					<v-col cols="10" md="10" sm="10" class="d-flex align-center py-0">
+					<v-col cols="10" md="10" class="pt-3 pb-0">
 						Protect poll with password
 					</v-col>
 
-					<v-col cols="2" md="10" sm="10" class="pa-0 d-flex justify-center">
-						<v-switch v-model="protectPassword" class="pr-2"></v-switch>
+					<v-col
+						cols="2"
+						md="10"
+						class="pa-0 pt-3 d-flex justify-center align-center"
+					>
+						<v-switch
+							v-model="protectPassword"
+							class="pr-2 ma-0 pa-0"
+							:hide-details="true"
+						></v-switch>
 					</v-col>
 
-					<v-col cols="10" md="10" sm="10" class="d-flex align-center py-0">
+					<v-col cols="12" md="12" class="py-2" v-if="protectPassword">
+						<v-text-field
+							placeholder="Polling Password"
+							dense
+							:hide-details="true"
+							solo-inverted
+							style="border-radius: 0px"
+							v-model="question.description"
+						></v-text-field>
+					</v-col>
+
+					<v-col cols="10" md="10" class="pt-3 pb-0">
+						Use area restriction
+						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
+					</v-col>
+
+					<v-col
+						cols="2"
+						md="10"
+						class="pa-0 pt-3 d-flex justify-center align-center"
+					>
+						<v-switch class="pr-2 ma-0 pa-0" :hide-details="true"></v-switch>
+					</v-col>
+
+					<v-col cols="10" md="10" class="pt-3 pb-0">
+						Use device restriction
+						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
+					</v-col>
+
+					<v-col
+						cols="2"
+						md="10"
+						class="pa-0 pt-3 d-flex justify-center align-center"
+					>
+						<v-switch class="pr-2 ma-0 pa-0" :hide-details="true"></v-switch>
+					</v-col>
+
+					<v-col cols="10" md="10" class="pt-3 pb-0">
 						Required details from voter
+						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
 					</v-col>
 
-					<v-col cols="2" md="10" sm="10" class="py-0">
-						<v-btn icon tile>
+					<v-col
+						cols="2"
+						md="10"
+						class="pa-0 pt-2 d-flex justify-center align-center"
+					>
+						<v-btn icon tile class="pa-0 ma-0" :to="{name:'req.details'}">
 							<v-icon size="30">mdi-arrow-right-box</v-icon>
 						</v-btn>
 					</v-col>
-				</v-row>
-
-				<v-row align="center" justify="center" class="mt-5" no-gutters>
-					<v-col cols="10" md="10" sm="10">
-						<v-avatar size="80" tile>
-							<v-img :src="imgSrc"></v-img>
-						</v-avatar>
-					</v-col>
-					<div>
-						{{ imgSrc }}
-					</div>
 				</v-row>
 			</v-container>
 		</v-main>
@@ -190,14 +266,19 @@ export default {
 			protectPassword: false,
 			deadline: "",
 			deadlineValue: "",
-			question: "",
 			description: "",
 			date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
 				.toISOString()
 				.substr(0, 10),
 			modal: false,
-			imgMenu: [{ title: "Gallery" }, { title: "Camera" }],
-			imgSrc: "https://picsum.photos/id/11/500/300",
+			imgMenu: [{ title: "Remove" }, { title: "Change" }],
+			imgBlob: null,
+			question: {
+				title: "",
+				description: "",
+				img: null,
+				img_type: null,
+			},
 		};
 	},
 	mounted() {
@@ -205,19 +286,15 @@ export default {
 			{
 				text: "",
 				img: null,
+				img_type: null,
 			},
 		];
 	},
-	// watch: {
-	// 	date(val) {
-	// 		this.dateFormatted = this.formatDate(this.date);
-	// 	},
-	// },
-	// computed: {
-	// 	computedDateFormatted() {
-	// 		return this.formatDate(this.date);
-	// 	},
-	// },
+	watch: {
+		fileInput(newVal) {
+			console.log(newVal);
+		},
+	},
 	methods: {
 		prependIconCallback(idx) {
 			this.answers.splice(idx, 1);
@@ -225,34 +302,61 @@ export default {
 		addImage(idx) {
 			console.log(idx);
 		},
-		openImg(idx) {
-			console.log(idx);
-			Camera.getPhoto({
-				quality: 90,
-				allowEditing: false,
-				resultType: CameraResultType.Uri,
-			}).then((result) => {
-				this.imgSrc = result.webPath
-				console.log(result);
-			});
-			// const takePicture = async () => {
-
-			// 	// const image = await
-
-			// 	// // image.webPath will contain a path that can be set as an image src.
-			// 	// // You can access the original file using image.path, which can be
-			// 	// // passed to the Filesystem API to read the raw data of the image,
-			// 	// // if desired (or pass resultType: CameraResultType.Base64 to getPhoto)
-			// 	// var imageUrl = image.webPath;
-
-			// 	// // Can be set to the src of an image now
-			// 	// this.imgSrc= imageUrl;
-			// };
+		pickImg(idx = null, type) {
+			if (type === "question") {
+				this.openImg()
+					.then((result) => {
+						// console.log(result);
+						this.question.img = result.webPath;
+						this.question.img_type = result.format;
+					})
+					.catch((e) => {
+						console.log(e);
+					});
+			} else {
+				// console.log(idx);
+				this.openImg()
+					.then((result) => {
+						// console.log(result);
+						this.answers[idx].img = result.webPath;
+						this.answers[idx].img_type = result.format;
+						// console.log(this.answers);
+					})
+					.catch((e) => {
+						console.log(e);
+					});
+			}
 		},
-		addQuestion() {
+		imgClicked(menu, type, idx = null) {
+			if (type === "question") {
+				if (menu === 0) {
+					this.question.img = null;
+				} else {
+					this.pickImg(idx, type);
+				}
+			} else {
+			}
+		},
+		openImg() {
+			return new Promise((resolve, reject) => {
+				Camera.getPhoto({
+					quality: 90,
+					allowEditing: false,
+					resultType: CameraResultType.Uri,
+				})
+					.then((result) => {
+						resolve(result);
+					})
+					.catch((e) => {
+						reject(e);
+					});
+			});
+		},
+		addAnswer() {
 			const question = {
 				text: "",
 				img: null,
+				img_type: null,
 			};
 
 			this.answers.push(question);
@@ -261,13 +365,40 @@ export default {
 			this.$router.back();
 		},
 		savePoll() {
-			this.$router.back();
+			let bodyFormData = new FormData();
+			console.log(this.question);
+			// console.log();
+			this.fetchImg(
+				this.question.img,
+				`quest_img.${this.question.img_type}`,
+				`image/${this.question.img_type}`
+			).then((quest_img) => {
+				console.log(quest_img);
+				bodyFormData.append("question_img", quest_img);
+				bodyFormData.append("img2", this.fileInput);
+
+				axios
+					.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+					.then((response) => {
+						console.log(response);
+					})
+					.catch((e) => {
+						console.log(e);
+					});
+			});
+			// bodyFormData.append("path", this.question.img);
+			// bodyFormData.append("title", this.question.title);
+			// bodyFormData.append("desc", this.question.description);
+
+			// this.$router.back();
 		},
 		saveDate() {
 			this.$refs.dialog.save(this.date);
-			console.log(this.formatDateValue(this.date));
+			// console.log(this.formatDateValue(this.date));
 			this.deadline = this.formatDate(this.date);
 		},
+
+		// helper function
 		formatDate(date) {
 			if (!date) return null;
 			const monthList = [
@@ -292,6 +423,25 @@ export default {
 
 			const [year, month, day] = date.split("-");
 			return `${year}-${month}-${day}`;
+		},
+		blobToFile(theBlob, fileName, type) {
+			let file = new File([theBlob], fileName, {
+				lastModified: Date.now(),
+				type: type,
+			});
+
+			return file;
+		},
+		fetchImg(url, fileName, type) {
+			return new Promise((resolve) => {
+				fetch(url).then((result) => {
+					result.blob().then((blob) => {
+						const quest_file = this.blobToFile(blob, fileName, type);
+						// console.log(quest_file);
+						resolve(quest_file);
+					});
+				});
+			});
 		},
 	},
 };
