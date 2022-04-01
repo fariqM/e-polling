@@ -12,6 +12,8 @@
 				<v-icon>mdi-chevron-left</v-icon>
 			</v-btn>
 			<v-toolbar-title>Voter Details</v-toolbar-title>
+			<v-spacer></v-spacer>
+			<v-icon>mdi-help-circle-outline</v-icon>
 		</v-app-bar>
 
 		<v-main>
@@ -25,12 +27,12 @@
 						class="pa-0 pt-3 d-flex justify-center align-center"
 					>
 						<v-switch
-							v-model="reqEmail"
+							v-model="req_email"
 							class="pr-2 ma-0 pa-0"
 							:hide-details="true"
 						></v-switch>
 					</v-col>
-                    <v-col cols="10" md="10" class="pt-3 pb-0"> Required name </v-col>
+					<v-col cols="10" md="10" class="pt-3 pb-0"> Required name </v-col>
 
 					<v-col
 						cols="2"
@@ -38,7 +40,7 @@
 						class="pa-0 pt-3 d-flex justify-center align-center"
 					>
 						<v-switch
-							v-model="reqName"
+							v-model="req_name"
 							class="pr-2 ma-0 pa-0"
 							:hide-details="true"
 						></v-switch>
@@ -50,18 +52,58 @@
 </template>
 
 <script>
+
+
 export default {
 	data() {
 		return {
-			reqEmail: false,
-            reqName:false,
+			
 		};
 	},
+	
+	computed: {
+		req_email: {
+			get() {
+				return this.$store.getters.getReqEmail
+			},
+			set(value) {
+				this.$store.commit('setReqEmail', value)
+				return value
+			},
+		},
+
+		req_name: {
+			get() {
+				return this.$store.getters.getReqName
+			},
+			set(value) {
+				this.$store.commit('setReqName', value)
+				return value
+			},
+		},
+	},
 	methods: {
-		saveOption() {},
+		saveOption() {
+			this.pushBackParams(1);
+		},
 		navigation_back() {
-            this.$router.back();
-        },
+			this.pushBackParams(0);
+		},
+		pushBackParams(val) {
+			let params = null;
+			if (val === 1) {
+				params = {
+					details: { req_email: this.req_email, req_name: this.req_name },
+				};
+			} else {
+				params = {};
+			}
+
+			this.$router.push({
+				name: "new.poll",
+				params: params,
+			});
+		},
 	},
 };
 </script>

@@ -246,7 +246,12 @@
 						md="10"
 						class="pa-0 pt-2 d-flex justify-center align-center"
 					>
-						<v-btn icon tile class="pa-0 ma-0" :to="{name:'req.details'}">
+						<v-btn
+							icon
+							tile
+							class="pa-0 ma-0"
+							:to="{ name: 'req.details', params: { details: details } }"
+						>
 							<v-icon size="30">mdi-arrow-right-box</v-icon>
 						</v-btn>
 					</v-col>
@@ -279,7 +284,16 @@ export default {
 				img: null,
 				img_type: null,
 			},
+			details: null,
 		};
+	},
+	beforeRouteEnter(to, from, next) {
+		next((vm) => {
+			if (from.name !== 'req.details') {
+				vm.$store.commit('setReqName', false)
+				vm.$store.commit('setReqEmail', false)
+			}
+		});
 	},
 	mounted() {
 		this.answers = [
@@ -362,30 +376,40 @@ export default {
 			this.answers.push(question);
 		},
 		navigation_back() {
-			this.$router.back();
+			this.$router.push({ name: "my.poll" });
 		},
 		savePoll() {
 			let bodyFormData = new FormData();
-			console.log(this.question);
-			// console.log();
-			this.fetchImg(
-				this.question.img,
-				`quest_img.${this.question.img_type}`,
-				`image/${this.question.img_type}`
-			).then((quest_img) => {
-				console.log(quest_img);
-				bodyFormData.append("question_img", quest_img);
-				bodyFormData.append("img2", this.fileInput);
+			// console.log(this.question);
+			// // console.log();
+			// this.fetchImg(
+			// 	this.question.img,
+			// 	`quest_img.${this.question.img_type}`,
+			// 	`image/${this.question.img_type}`
+			// ).then((quest_img) => {
+			// 	console.log(quest_img);
+			// 	bodyFormData.append("question_img", quest_img);
+			// 	bodyFormData.append("img2", this.fileInput);
 
-				axios
-					.post("http://192.168.1.3:8888/api/testing", bodyFormData)
-					.then((response) => {
-						console.log(response);
-					})
-					.catch((e) => {
-						console.log(e);
-					});
-			});
+			// 	axios
+			// 		.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+			// 		.then((response) => {
+			// 			console.log(response);
+			// 		})
+			// 		.catch((e) => {
+			// 			console.log(e);
+			// 		});
+			// });
+
+			axios
+				.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+				.then((response) => {
+					console.log(response.data);
+				})
+				.catch((e) => {
+					console.log(e);
+				});
+
 			// bodyFormData.append("path", this.question.img);
 			// bodyFormData.append("title", this.question.title);
 			// bodyFormData.append("desc", this.question.description);
