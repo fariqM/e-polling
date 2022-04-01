@@ -44,7 +44,25 @@
 						>
 							<v-icon size="30">mdi-image-plus</v-icon>
 						</v-btn>
-						<v-menu offset-y v-else>
+
+						<v-sheet
+							width="40"
+							height="40"
+							color="transparent"
+							v-if="question.img_file == null && question.img !== null"
+						>
+							<div class="d-flex justify-center align-">
+								<v-progress-circular
+									indeterminate
+									color="primary"
+								></v-progress-circular>
+							</div>
+						</v-sheet>
+
+						<v-menu
+							offset-y
+							v-if="question.img_file !== null && question.img !== null"
+						>
 							<template v-slot:activator="{ on, attrs }">
 								<v-avatar size="40" tile class="pa-0" v-bind="attrs" v-on="on">
 									<v-img :src="question.img"></v-img>
@@ -102,8 +120,23 @@
 							>
 								<v-icon size="30">mdi-image-plus</v-icon>
 							</v-btn>
-
-							<v-menu offset-y v-else>
+							<v-sheet
+								width="40"
+								height="40"
+								color="transparent"
+								v-if="answer.img_file == null && answer.img !== null"
+							>
+								<div class="d-flex justify-center align-">
+									<v-progress-circular
+										indeterminate
+										color="primary"
+									></v-progress-circular>
+								</div>
+							</v-sheet>
+							<v-menu
+								offset-y
+								v-if="answer.img_file !== null && answer.img !== null"
+							>
 								<template v-slot:activator="{ on, attrs }">
 									<v-avatar
 										size="40"
@@ -206,7 +239,7 @@
 							:hide-details="true"
 							solo-inverted
 							style="border-radius: 0px"
-							v-model="question.description"
+							v-model="password"
 						></v-text-field>
 					</v-col>
 
@@ -220,7 +253,11 @@
 						md="10"
 						class="pa-0 pt-3 d-flex justify-center align-center"
 					>
-						<v-switch class="pr-2 ma-0 pa-0" :hide-details="true"></v-switch>
+						<v-switch
+							class="pr-2 ma-0 pa-0"
+							:hide-details="true"
+							v-model="protectArea"
+						></v-switch>
 					</v-col>
 
 					<v-col cols="10" md="10" class="pt-3 pb-0">
@@ -269,8 +306,11 @@ export default {
 		return {
 			answers: [],
 			protectPassword: false,
+			password: null,
+			protectArea: false,
+			area: null,
 			deadline: "",
-			deadlineValue: "",
+			deadlineValue: null,
 			description: "",
 			date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
 				.toISOString()
@@ -282,6 +322,7 @@ export default {
 				title: "",
 				description: "",
 				img: null,
+				img_file: null,
 				img_type: null,
 			},
 			details: null,
@@ -289,9 +330,9 @@ export default {
 	},
 	beforeRouteEnter(to, from, next) {
 		next((vm) => {
-			if (from.name !== 'req.details') {
-				vm.$store.commit('setReqName', false)
-				vm.$store.commit('setReqEmail', false)
+			if (from.name !== "req.details") {
+				vm.$store.commit("setReqName", false);
+				vm.$store.commit("setReqEmail", false);
 			}
 		});
 	},
@@ -300,6 +341,7 @@ export default {
 			{
 				text: "",
 				img: null,
+				img_file: null,
 				img_type: null,
 			},
 		];
@@ -320,9 +362,17 @@ export default {
 			if (type === "question") {
 				this.openImg()
 					.then((result) => {
-						// console.log(result);
 						this.question.img = result.webPath;
 						this.question.img_type = result.format;
+						this.fetchImg(
+							result.webPath,
+							`q_img.${result.format}`,
+							`image/${result.format}`
+						).then((file) => {
+							this.question.img_file = file;
+							console.log("fetch ques img success");
+							console.log(this.question.img_file);
+						});
 					})
 					.catch((e) => {
 						console.log(e);
@@ -334,7 +384,15 @@ export default {
 						// console.log(result);
 						this.answers[idx].img = result.webPath;
 						this.answers[idx].img_type = result.format;
-						// console.log(this.answers);
+						this.fetchImg(
+							result.webPath,
+							`a_img.${result.format}`,
+							`image/${result.format}`
+						).then((file) => {
+							this.answers[idx].img_file = file;
+							console.log("fetch ans img success");
+							console.log(this.answers[idx].img_file);
+						});
 					})
 					.catch((e) => {
 						console.log(e);
@@ -370,6 +428,7 @@ export default {
 			const question = {
 				text: "",
 				img: null,
+				img_file: null,
 				img_type: null,
 			};
 
@@ -380,39 +439,53 @@ export default {
 		},
 		savePoll() {
 			let bodyFormData = new FormData();
+			bodyFormData.append("question", this.question.title);
+			bodyFormData.append("description", this.question.description);
+			bodyFormData.append("q_img", this.question.img);
+			bodyFormData.append("deadline", this.deadlineValue);
+
+			bodyFormData.append("with_password", this.protectPassword);
+			if (this.protectPassword) {
+				bodyFormData.append("password", this.password);
+			}
+
+			bodyFormData.append("with_restriction_area", this.protectArea);
+			if (this.protectArea) {
+				bodyFormData.append("area", this.area);
+			}
+
+			bodyFormData.append("req_email", this.$store.getters.getReqEmail);
+			bodyFormData.append("req_name", this.$store.getters.getReqName);
+
 			// console.log(this.question);
 			// // console.log();
-			// this.fetchImg(
-			// 	this.question.img,
-			// 	`quest_img.${this.question.img_type}`,
-			// 	`image/${this.question.img_type}`
-			// ).then((quest_img) => {
-			// 	console.log(quest_img);
-			// 	bodyFormData.append("question_img", quest_img);
-			// 	bodyFormData.append("img2", this.fileInput);
+			this.fetchImg(
+				this.question.img,
+				`quest_img.${this.question.img_type}`,
+				`image/${this.question.img_type}`
+			).then((quest_img) => {
+				console.log(quest_img);
+				bodyFormData.append("question_img", quest_img);
+				bodyFormData.append("img2", this.fileInput);
 
-			// 	axios
-			// 		.post("http://192.168.1.3:8888/api/testing", bodyFormData)
-			// 		.then((response) => {
-			// 			console.log(response);
-			// 		})
-			// 		.catch((e) => {
-			// 			console.log(e);
-			// 		});
-			// });
+				axios
+					.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+					.then((response) => {
+						console.log(response);
+					})
+					.catch((e) => {
+						console.log(e);
+					});
+			});
 
-			axios
-				.post("http://192.168.1.3:8888/api/testing", bodyFormData)
-				.then((response) => {
-					console.log(response.data);
-				})
-				.catch((e) => {
-					console.log(e);
-				});
-
-			// bodyFormData.append("path", this.question.img);
-			// bodyFormData.append("title", this.question.title);
-			// bodyFormData.append("desc", this.question.description);
+			// axios
+			// 	.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+			// 	.then((response) => {
+			// 		console.log(response.data);
+			// 	})
+			// 	.catch((e) => {
+			// 		console.log(e);
+			// 	});
 
 			// this.$router.back();
 		},
@@ -420,6 +493,7 @@ export default {
 			this.$refs.dialog.save(this.date);
 			// console.log(this.formatDateValue(this.date));
 			this.deadline = this.formatDate(this.date);
+			this.deadlineValue = this.date;
 		},
 
 		// helper function

@@ -52,56 +52,42 @@
 </template>
 
 <script>
-
-
 export default {
 	data() {
-		return {
-			
-		};
+		return {};
 	},
-	
+
 	computed: {
 		req_email: {
 			get() {
-				return this.$store.getters.getReqEmail
+				return this.$store.getters.getReqEmail;
 			},
 			set(value) {
-				this.$store.commit('setReqEmail', value)
-				return value
+				this.$store.commit("setReqEmail", value);
+				return value;
 			},
 		},
 
 		req_name: {
 			get() {
-				return this.$store.getters.getReqName
+				return this.$store.getters.getReqName;
 			},
 			set(value) {
-				this.$store.commit('setReqName', value)
-				return value
+				this.$store.commit("setReqName", value);
+				return value;
 			},
 		},
 	},
 	methods: {
 		saveOption() {
-			this.pushBackParams(1);
+			this.pushBackParams();
 		},
 		navigation_back() {
-			this.pushBackParams(0);
+			this.pushBackParams();
 		},
-		pushBackParams(val) {
-			let params = null;
-			if (val === 1) {
-				params = {
-					details: { req_email: this.req_email, req_name: this.req_name },
-				};
-			} else {
-				params = {};
-			}
-
+		pushBackParams() {
 			this.$router.push({
 				name: "new.poll",
-				params: params,
 			});
 		},
 	},
