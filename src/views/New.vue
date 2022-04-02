@@ -19,8 +19,8 @@
 				fluid
 				class="overflow-y-auto"
 				:style="{
-					'max-height': wHeight < 640 ? `${wHeight - 70}px` : '100%',
-					height: wHeight < 640 ? `` : '100%',
+					'max-height': wHeight < 650 ? `${wHeight - 70}px` : '100%',
+					height: wHeight < 650 ? `` : '100%',
 				}"
 			>
 				<v-row class="mt-10">
@@ -189,7 +189,7 @@
 					<!-- end answer section -->
 
 					<v-col cols="12" md="12" class="py-2">
-						<v-btn tile small class="pl-2 prim-grad" block @click="addAnswer">
+						<v-btn tile class="pl-2 prim-grad" block @click="addAnswer">
 							<v-icon>mdi-plus</v-icon>
 							Add Answer
 						</v-btn>
@@ -198,179 +198,225 @@
 					<v-col cols="12" md="12" class="py-2">
 						<v-divider dark style="border-color: #f0f8ff59" />
 					</v-col>
-				</v-row>
 
-				<v-subheader class="pa-0 c-subheader">Option</v-subheader>
-
-				<v-row>
-					<v-col cols="10" md="10" class="pt-2 pb-1">
-						<v-dialog
-							ref="dialog"
-							v-model="modal"
-							:return-value.sync="date"
-							width="290px"
+					<v-col cols="12" md="12" class="py-0">
+						<v-alert
+							dense
+							type="info"
+							color="info"
+							class="mb-0"
+							tile
+							dark
+							style="font-size: 0.7rem !important"
+							dismissible
+							colored-border
+							border="left"
+							v-model="alertOpt"
+							transition="scale-transition"
 						>
-							<v-date-picker v-model="date" scrollable>
-								<v-spacer></v-spacer>
-								<v-btn text color="primary" @click="modal = false">
-									Cancel
-								</v-btn>
-								<v-btn text color="primary" @click="saveDate()"> OK </v-btn>
-							</v-date-picker>
-						</v-dialog>
-						<!-- Voting Deadline -->
-						<v-text-field
-							color="primary"
-							placeholder="Voting Deadline"
-							dense
-							:hide-details="true"
-							solo-inverted
-							readonly
-							@click="modal = true"
-							style="border-radius: 0px"
-							v-model="deadline"
-						></v-text-field>
+							You can add some option like poll deadline, restriction, and
+							others.
+						</v-alert>
+						<!-- <v-btn block class="prim-grad" tile outlined>
+							Option
+							<v-spacer></v-spacer>
+							<v-icon>mdi-chevron-right</v-icon>
+						</v-btn> -->
 					</v-col>
 
-					<v-col cols="2" md="10" class="pt-2 pb-1">
-						<v-btn icon tile @click="modal = true">
-							<v-icon size="30">mdi-calendar-clock-outline</v-icon>
-						</v-btn>
-					</v-col>
-
-					<v-col cols="10" md="10" class="pt-3 pb-0">
-						Protect poll with password
-					</v-col>
-
-					<v-col
-						cols="2"
-						md="10"
-						class="pa-0 pt-3 d-flex justify-center align-center"
-					>
-						<v-switch
-							v-model="protectPassword"
-							class="pr-2 ma-0 pa-0"
-							:hide-details="true"
-						></v-switch>
-					</v-col>
-
-					<v-col cols="12" md="12" class="py-2" v-if="protectPassword">
-						<v-text-field
-							placeholder="Polling Password"
-							dense
-							:hide-details="true"
-							solo-inverted
-							style="border-radius: 0px"
-							v-model="password"
-						></v-text-field>
-					</v-col>
-
-					<v-col cols="10" md="10" class="pt-3 pb-0">
-						Use area restriction
-						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
-					</v-col>
-
-					<v-col
-						cols="2"
-						md="10"
-						class="pa-0 pt-3 d-flex justify-center align-center"
-					>
-						<v-switch
-							class="pr-2 ma-0 pa-0"
-							:hide-details="true"
-							v-model="protectArea"
-						></v-switch>
-					</v-col>
-
-					<v-col cols="10" md="10" class="pt-3 pb-0">
-						Use device restriction
-						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
-					</v-col>
-
-					<v-col
-						cols="2"
-						md="10"
-						class="pa-0 pt-3 d-flex justify-center align-center"
-					>
-						<v-switch class="pr-2 ma-0 pa-0" :hide-details="true"></v-switch>
-					</v-col>
-
-					<v-col cols="9" md="10" class="pt-3 pb-0">
-						Required details from voter
-						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
-					</v-col>
-
-					<v-col
-						cols="3"
-						md="10"
-						class="pa-0 pt-2 pr-3 d-flex justify-end align-center"
-					>
-						<v-btn icon tile class="pa-0 ma-0" @click="detailsDialog = true">
-							<v-icon size="30">mdi-arrow-right-box</v-icon>
+					<v-col cols="12" md="12">
+						<v-btn
+							block
+							class="prim-grad pr-2"
+							tile
+							outlined
+							@click="restricDialog = true"
+						>
+							Option
+							<v-spacer></v-spacer>
+							<v-icon>mdi-chevron-right</v-icon>
 						</v-btn>
 					</v-col>
 				</v-row>
-
-				<!-- Details Dialog -->
-				<v-row justify="center">
-					<v-dialog
-						v-model="detailsDialog"
-						fullscreen
-						hide-overlay
-						transition="slide-x-transition"
-					>
-						<v-card>
-							<v-toolbar dark color="prim-grad" dense>
-								<v-btn icon dark @click="detailsDialog = false">
-									<v-icon>mdi-check</v-icon>
-								</v-btn>
-								<v-toolbar-title>Voter Details</v-toolbar-title>
-								<v-spacer></v-spacer>
-								<v-toolbar-items>
-									<v-btn icon dark>
-										<v-icon>mdi-help-circle-outline</v-icon>
-									</v-btn>
-								</v-toolbar-items>
-							</v-toolbar>
-
-							<v-container fluid>
-								<v-row>
-									<v-col cols="10" md="10" class="pt-3 pb-0">
-										Required email
-									</v-col>
-
-									<v-col
-										cols="2"
-										md="10"
-										class="pa-0 pt-3 d-flex justify-center align-center"
-									>
-										<v-switch
-											class="pr-2 ma-0 pa-0"
-											:hide-details="true"
-											v-model="req_email"
-										></v-switch>
-									</v-col>
-									<v-col cols="10" md="10" class="pt-3 pb-0">
-										Required name
-									</v-col>
-
-									<v-col
-										cols="2"
-										md="10"
-										class="pa-0 pt-3 d-flex justify-center align-center"
-									>
-										<v-switch
-											class="pr-2 ma-0 pa-0"
-											:hide-details="true"
-											v-model="req_name"
-										></v-switch>
-									</v-col>
-								</v-row>
-							</v-container>
-						</v-card>
-					</v-dialog>
-				</v-row>
+				<!-- <v-subheader class="pa-0 c-subheader">Option</v-subheader> -->
 			</v-container>
+
+			<!-- Option Modal -->
+			<v-row>
+				<v-dialog
+					fullscreen
+					hide-overlay
+					transition="slide-x-transition"
+					v-model="restricDialog"
+				>
+					<v-card>
+						<v-toolbar dark color="prim-grad" dense>
+							<v-btn icon dark @click="restricDialog = false">
+								<v-icon>mdi-check</v-icon>
+							</v-btn>
+							<v-toolbar-title>Options</v-toolbar-title>
+							<v-spacer></v-spacer>
+							<v-toolbar-items>
+								<v-btn icon dark>
+									<v-icon>mdi-help-circle-outline</v-icon>
+								</v-btn>
+							</v-toolbar-items>
+						</v-toolbar>
+
+						<v-container fluid>
+							<v-row class="">
+								<v-col cols="10" md="10" class="pt-2 pb-1">
+									<v-dialog
+										ref="dialog"
+										v-model="modal"
+										:return-value.sync="date"
+										width="290px"
+									>
+										<v-date-picker v-model="date" scrollable>
+											<v-spacer></v-spacer>
+											<v-btn text color="primary" @click="modal = false">
+												Cancel
+											</v-btn>
+											<v-btn text color="primary" @click="saveDate()">
+												OK
+											</v-btn>
+										</v-date-picker>
+									</v-dialog>
+									<!-- Voting Deadline -->
+									<v-text-field
+										color="primary"
+										placeholder="Voting Deadline"
+										dense
+										:hide-details="true"
+										solo-inverted
+										readonly
+										@click="modal = true"
+										style="border-radius: 0px"
+										v-model="deadline"
+									></v-text-field>
+								</v-col>
+
+								<v-col cols="2" md="10" class="pt-2 pb-1">
+									<v-btn icon tile @click="modal = true">
+										<v-icon size="30">mdi-calendar-clock-outline</v-icon>
+									</v-btn>
+								</v-col>
+
+								<v-col cols="12" md="12" class="">
+									<v-divider dark style="border-color: #f0f8ff59" />
+								</v-col>
+							</v-row>
+
+							<div class="d-flex">
+								<v-subheader class="pa-0 c-subheader"
+									>Required details from voter</v-subheader
+								>
+								<v-icon class="ml-2">mdi-help-circle-outline</v-icon>
+							</div>
+
+							<v-row>
+								<v-col cols="10" md="10" class="pt-3 pb-0"> Email </v-col>
+
+								<v-col
+									cols="2"
+									md="10"
+									class="pa-0 pt-3 d-flex justify-center align-center"
+								>
+									<v-switch
+										class="pr-2 ma-0 pa-0"
+										:hide-details="true"
+										v-model="req_email"
+									></v-switch>
+								</v-col>
+								<v-col cols="10" md="10" class="pt-3 pb-0"> Name </v-col>
+
+								<v-col
+									cols="2"
+									md="10"
+									class="pa-0 pt-3 d-flex justify-center align-center"
+								>
+									<v-switch
+										class="pr-2 ma-0 pa-0"
+										:hide-details="true"
+										v-model="req_name"
+									></v-switch>
+								</v-col>
+								<v-col cols="12" md="12" class="">
+									<v-divider dark style="border-color: #f0f8ff59" />
+								</v-col>
+							</v-row>
+
+							<div class="d-flex">
+								<v-subheader class="pa-0 c-subheader">Restrictions</v-subheader>
+								<v-icon class="ml-2">mdi-help-circle-outline</v-icon>
+							</div>
+
+							<v-row class="pt-3">
+								<v-col cols="10" md="10" class="py-0">
+									Protect poll with password
+								</v-col>
+
+								<v-col
+									cols="2"
+									md="10"
+									class="pa-0 d-flex justify-center align-center"
+								>
+									<v-switch
+										v-model="protectPassword"
+										class="pr-2 ma-0 pa-0"
+										:hide-details="true"
+									></v-switch>
+								</v-col>
+
+								<v-col cols="12" md="12" class="py-0" v-if="protectPassword">
+									<v-text-field
+										placeholder="Polling Password"
+										dense
+										:hide-details="true"
+										solo-inverted
+										style="border-radius: 0px"
+										v-model="password"
+									></v-text-field>
+								</v-col>
+
+								<v-col cols="10" md="10" class="pt-3 pb-0">
+									Use area restriction
+									<!-- <v-icon class="ml-1" small>mdi-help-circle-outline</v-icon> -->
+								</v-col>
+
+								<v-col
+									cols="2"
+									md="10"
+									class="pa-0 pt-3 d-flex justify-center align-center"
+								>
+									<v-switch
+										class="pr-2 ma-0 pa-0"
+										:hide-details="true"
+										v-model="areaRest"
+									></v-switch>
+								</v-col>
+
+								<v-col cols="10" md="10" class="pt-3 pb-0">
+									Use device restriction
+									<!-- <v-icon class="ml-1" small>mdi-help-circle-outline</v-icon> -->
+								</v-col>
+
+								<v-col
+									cols="2"
+									md="10"
+									class="pa-0 pt-3 d-flex justify-center align-center"
+								>
+									<v-switch
+										class="pr-2 ma-0 pa-0"
+										:hide-details="true"
+										v-model="deviceRest"
+									></v-switch>
+								</v-col>
+							</v-row>
+						</v-container>
+					</v-card>
+				</v-dialog>
+			</v-row>
 		</v-main>
 	</div>
 </template>
@@ -384,8 +430,9 @@ export default {
 			answers: [],
 			protectPassword: false,
 			password: null,
-			protectArea: false,
+			areaRest: false,
 			area: null,
+			deviceRest: false,
 			deadline: "",
 			deadlineValue: null,
 			description: "",
@@ -404,6 +451,8 @@ export default {
 			},
 			details: null,
 			detailsDialog: false,
+			restricDialog: false,
+			alertOpt:false,
 			wHeight: window.innerHeight,
 			errors: {
 				description: [],
@@ -442,14 +491,17 @@ export default {
 		},
 	},
 	mounted() {
+		setTimeout(() => {
+			this.alertOpt = true
+		}, 600);
 		const answer = {
-				text: "",
-				img: null,
-				img_file: null,
-				img_type: null,
-			}
-		this.answers.push(answer)
-		this.answers.push(answer)
+			text: "",
+			img: null,
+			img_file: null,
+			img_type: null,
+		};
+		this.answers.push(answer);
+		this.answers.push(answer);
 	},
 	watch: {
 		fileInput(newVal) {
@@ -551,10 +603,12 @@ export default {
 				bodyFormData.append("password", this.password);
 			}
 
-			bodyFormData.append("with_restriction_area", this.protectArea);
+			bodyFormData.append("with_area_res", this.areaRest);
 			if (this.protectArea) {
 				bodyFormData.append("area", this.area);
 			}
+			bodyFormData.append("with_device_res", this.deviceRest);
+
 
 			bodyFormData.append("req_email", this.$store.getters.getReqEmail);
 			bodyFormData.append("req_name", this.$store.getters.getReqName);
