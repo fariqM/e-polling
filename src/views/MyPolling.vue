@@ -15,8 +15,7 @@
 		</v-speed-dial>
 
 		<v-subheader
-			class="pa-0 ma-0 noselect"
-			style="font-size: 1.2rem; font-weight: 500; color: #f0f8ff"
+			class="pa-0 ma-0 c-subheader noselect"
 			>My Polling List</v-subheader
 		>
 

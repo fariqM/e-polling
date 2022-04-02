@@ -14,19 +14,27 @@
 			</v-btn>
 			<v-toolbar-title>Create New Poll</v-toolbar-title>
 		</v-app-bar>
-		<v-main>
-			<v-container fluid>
+		<v-main style="height: 100%">
+			<v-container
+				fluid
+				class="overflow-y-auto"
+				:style="{
+					'max-height': wHeight < 640 ? `${wHeight - 70}px` : '100%',
+					height: wHeight < 640 ? `` : '100%',
+				}"
+			>
 				<v-row class="mt-10">
 					<!-- question section -->
 					<v-col cols="10" md="10" class="py-2">
 						<v-text-field
 							color="primary"
-							placeholder="Question"
+							placeholder="Question*"
 							dense
-							:hide-details="true"
+							hide-details="auto"
 							solo-inverted
 							v-model="question.title"
 							style="border-radius: 0px"
+							:error-messages="errors.question"
 						></v-text-field>
 					</v-col>
 
@@ -82,21 +90,39 @@
 
 					<v-col cols="12" md="12" class="py-2">
 						<v-text-field
-							placeholder="Description"
+							placeholder="Description*"
 							dense
-							:hide-details="true"
+							hide-details="auto"
 							solo-inverted
 							style="border-radius: 0px"
 							v-model="question.description"
+							:error-messages="errors.description"
 						></v-text-field>
+					</v-col>
+
+					<v-col cols="12" md="12" class="py-0 pr-0">
+						<v-subheader
+							class="pa-0"
+							style="font-size: 0.7rem !important; height: 1.1rem"
+							>Input with * must be filled</v-subheader
+						>
 					</v-col>
 
 					<v-col cols="12" md="12" class="py-2">
 						<v-divider dark style="border-color: #f0f8ff59" />
 					</v-col>
+
 					<!-- end question section -->
 
 					<!-- answer section -->
+					<v-col cols="12" md="12" class="py-0 pr-0">
+						<v-subheader
+							class="pa-0"
+							style="font-size: 0.7rem !important; height: 1.1rem"
+							>Must have at least 2 answers</v-subheader
+						>
+					</v-col>
+
 					<template v-for="(answer, i) in answers">
 						<v-col cols="10" md="10" :key="i" class="py-2">
 							<v-text-field
@@ -174,11 +200,7 @@
 					</v-col>
 				</v-row>
 
-				<v-subheader
-					class="pa-0"
-					style="font-size: 1.2rem; font-weight: 500; color: #f0f8ff"
-					>Option</v-subheader
-				>
+				<v-subheader class="pa-0 c-subheader">Option</v-subheader>
 
 				<v-row>
 					<v-col cols="10" md="10" class="pt-2 pb-1">
@@ -273,25 +295,80 @@
 						<v-switch class="pr-2 ma-0 pa-0" :hide-details="true"></v-switch>
 					</v-col>
 
-					<v-col cols="10" md="10" class="pt-3 pb-0">
+					<v-col cols="9" md="10" class="pt-3 pb-0">
 						Required details from voter
 						<v-icon class="ml-1" small>mdi-help-circle-outline</v-icon>
 					</v-col>
 
 					<v-col
-						cols="2"
+						cols="3"
 						md="10"
-						class="pa-0 pt-2 d-flex justify-center align-center"
+						class="pa-0 pt-2 pr-3 d-flex justify-end align-center"
 					>
-						<v-btn
-							icon
-							tile
-							class="pa-0 ma-0"
-							:to="{ name: 'req.details', params: { details: details } }"
-						>
+						<v-btn icon tile class="pa-0 ma-0" @click="detailsDialog = true">
 							<v-icon size="30">mdi-arrow-right-box</v-icon>
 						</v-btn>
 					</v-col>
+				</v-row>
+
+				<!-- Details Dialog -->
+				<v-row justify="center">
+					<v-dialog
+						v-model="detailsDialog"
+						fullscreen
+						hide-overlay
+						transition="slide-x-transition"
+					>
+						<v-card>
+							<v-toolbar dark color="prim-grad" dense>
+								<v-btn icon dark @click="detailsDialog = false">
+									<v-icon>mdi-check</v-icon>
+								</v-btn>
+								<v-toolbar-title>Voter Details</v-toolbar-title>
+								<v-spacer></v-spacer>
+								<v-toolbar-items>
+									<v-btn icon dark>
+										<v-icon>mdi-help-circle-outline</v-icon>
+									</v-btn>
+								</v-toolbar-items>
+							</v-toolbar>
+
+							<v-container fluid>
+								<v-row>
+									<v-col cols="10" md="10" class="pt-3 pb-0">
+										Required email
+									</v-col>
+
+									<v-col
+										cols="2"
+										md="10"
+										class="pa-0 pt-3 d-flex justify-center align-center"
+									>
+										<v-switch
+											class="pr-2 ma-0 pa-0"
+											:hide-details="true"
+											v-model="req_email"
+										></v-switch>
+									</v-col>
+									<v-col cols="10" md="10" class="pt-3 pb-0">
+										Required name
+									</v-col>
+
+									<v-col
+										cols="2"
+										md="10"
+										class="pa-0 pt-3 d-flex justify-center align-center"
+									>
+										<v-switch
+											class="pr-2 ma-0 pa-0"
+											:hide-details="true"
+											v-model="req_name"
+										></v-switch>
+									</v-col>
+								</v-row>
+							</v-container>
+						</v-card>
+					</v-dialog>
 				</v-row>
 			</v-container>
 		</v-main>
@@ -326,6 +403,13 @@ export default {
 				img_type: null,
 			},
 			details: null,
+			detailsDialog: false,
+			wHeight: window.innerHeight,
+			errors: {
+				description: [],
+				question: [],
+				password: [],
+			},
 		};
 	},
 	beforeRouteEnter(to, from, next) {
@@ -336,15 +420,36 @@ export default {
 			}
 		});
 	},
+	computed: {
+		req_email: {
+			get() {
+				return this.$store.getters.getReqEmail;
+			},
+			set(value) {
+				this.$store.commit("setReqEmail", value);
+				return value;
+			},
+		},
+
+		req_name: {
+			get() {
+				return this.$store.getters.getReqName;
+			},
+			set(value) {
+				this.$store.commit("setReqName", value);
+				return value;
+			},
+		},
+	},
 	mounted() {
-		this.answers = [
-			{
+		const answer = {
 				text: "",
 				img: null,
 				img_file: null,
 				img_type: null,
-			},
-		];
+			}
+		this.answers.push(answer)
+		this.answers.push(answer)
 	},
 	watch: {
 		fileInput(newVal) {
@@ -370,8 +475,6 @@ export default {
 							`image/${result.format}`
 						).then((file) => {
 							this.question.img_file = file;
-							console.log("fetch ques img success");
-							console.log(this.question.img_file);
 						});
 					})
 					.catch((e) => {
@@ -390,8 +493,6 @@ export default {
 							`image/${result.format}`
 						).then((file) => {
 							this.answers[idx].img_file = file;
-							console.log("fetch ans img success");
-							console.log(this.answers[idx].img_file);
 						});
 					})
 					.catch((e) => {
@@ -438,10 +539,11 @@ export default {
 			this.$router.push({ name: "my.poll" });
 		},
 		savePoll() {
+			this.resetErrors();
 			let bodyFormData = new FormData();
 			bodyFormData.append("question", this.question.title);
 			bodyFormData.append("description", this.question.description);
-			bodyFormData.append("q_img", this.question.img);
+			bodyFormData.append("q_img", this.question.img_file);
 			bodyFormData.append("deadline", this.deadlineValue);
 
 			bodyFormData.append("with_password", this.protectPassword);
@@ -457,26 +559,21 @@ export default {
 			bodyFormData.append("req_email", this.$store.getters.getReqEmail);
 			bodyFormData.append("req_name", this.$store.getters.getReqName);
 
+			console.log(this.answers);
+			bodyFormData.append("answers", JSON.stringify(this.answers));
+
 			// console.log(this.question);
 			// // console.log();
-			this.fetchImg(
-				this.question.img,
-				`quest_img.${this.question.img_type}`,
-				`image/${this.question.img_type}`
-			).then((quest_img) => {
-				console.log(quest_img);
-				bodyFormData.append("question_img", quest_img);
-				bodyFormData.append("img2", this.fileInput);
-
-				axios
-					.post("http://192.168.1.3:8888/api/testing", bodyFormData)
-					.then((response) => {
-						console.log(response);
-					})
-					.catch((e) => {
-						console.log(e);
-					});
-			});
+			axios
+				.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+				.then((response) => {
+					console.log(response);
+				})
+				.catch((e) => {
+					// console.log(e);
+					Object.assign(this.errors, e.response.data.errors);
+					console.log(e.response);
+				});
 
 			// axios
 			// 	.post("http://192.168.1.3:8888/api/testing", bodyFormData)
@@ -540,6 +637,11 @@ export default {
 					});
 				});
 			});
+		},
+		resetErrors() {
+			this.errors.description = [];
+			this.errors.question = [];
+			this.errors.password = [];
 		},
 	},
 };
