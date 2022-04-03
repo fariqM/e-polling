@@ -427,7 +427,20 @@ import { Camera, CameraResultType } from "@capacitor/camera";
 export default {
 	data() {
 		return {
-			answers: [],
+			answers: [
+				{
+					text: "",
+					img: null,
+					img_file: null,
+					img_type: null,
+				},
+				{
+					text: "",
+					img: null,
+					img_file: null,
+					img_type: null,
+				},
+			],
 			protectPassword: false,
 			password: null,
 			areaRest: false,
@@ -452,7 +465,7 @@ export default {
 			details: null,
 			detailsDialog: false,
 			restricDialog: false,
-			alertOpt:false,
+			alertOpt: false,
 			wHeight: window.innerHeight,
 			errors: {
 				description: [],
@@ -492,16 +505,8 @@ export default {
 	},
 	mounted() {
 		setTimeout(() => {
-			this.alertOpt = true
+			this.alertOpt = true;
 		}, 600);
-		const answer = {
-			text: "",
-			img: null,
-			img_file: null,
-			img_type: null,
-		};
-		this.answers.push(answer);
-		this.answers.push(answer);
 	},
 	watch: {
 		fileInput(newVal) {
@@ -510,7 +515,20 @@ export default {
 	},
 	methods: {
 		prependIconCallback(idx) {
-			this.answers.splice(idx, 1);
+			if (this.answers.length <= 2) {
+				toast.warning({
+					// title: "Att",
+					message: "Must have at least 2 answers.",
+					position: "topCenter",
+					timeout: 4500,
+					// ballon:true,
+					transitionInMobile: "fadeInRight",
+					transitionOutMobile: "fadeOutRight",
+					displayMode: 2,
+				});
+			} else {
+				this.answers.splice(idx, 1);
+			}
 		},
 		addImage(idx) {
 			console.log(idx);
@@ -555,6 +573,7 @@ export default {
 		imgClicked(menu, type, idx = null) {
 			if (type === "question") {
 				if (menu === 0) {
+					this.question.img_file = null;
 					this.question.img = null;
 				} else {
 					this.pickImg(idx, type);
@@ -592,34 +611,41 @@ export default {
 		},
 		savePoll() {
 			this.resetErrors();
+			console.log(this.deadlineValue);
 			let bodyFormData = new FormData();
 			bodyFormData.append("question", this.question.title);
 			bodyFormData.append("description", this.question.description);
 			bodyFormData.append("q_img", this.question.img_file);
-			bodyFormData.append("deadline", this.deadlineValue);
+			
+			if (this.deadlineValue !== null) {
+				bodyFormData.append("deadline", this.deadlineValue);
+			}
 
-			bodyFormData.append("with_password", this.protectPassword);
+			bodyFormData.append("with_password", this.parseBol(this.protectPassword));
 			if (this.protectPassword) {
 				bodyFormData.append("password", this.password);
 			}
 
-			bodyFormData.append("with_area_res", this.areaRest);
+			bodyFormData.append("with_area_res", this.parseBol(this.areaRest));
 			if (this.protectArea) {
 				bodyFormData.append("area", this.area);
 			}
-			bodyFormData.append("with_device_res", this.deviceRest);
+			bodyFormData.append("with_device_res", this.parseBol(this.deviceRest));
 
+			bodyFormData.append("req_email", this.parseBol(this.$store.getters.getReqEmail));
+			bodyFormData.append("req_name", this.parseBol(this.$store.getters.getReqName));
 
-			bodyFormData.append("req_email", this.$store.getters.getReqEmail);
-			bodyFormData.append("req_name", this.$store.getters.getReqName);
-
-			console.log(this.answers);
+			// console.log(this.answers);
 			bodyFormData.append("answers", JSON.stringify(this.answers));
+
+			this.answers.forEach(element => {
+				bodyFormData.append("a_img[]", element.img_file);
+			});
 
 			// console.log(this.question);
 			// // console.log();
 			axios
-				.post("http://192.168.1.3:8888/api/testing", bodyFormData)
+				.post("poll/create", bodyFormData)
 				.then((response) => {
 					console.log(response);
 				})
@@ -696,6 +722,13 @@ export default {
 			this.errors.description = [];
 			this.errors.question = [];
 			this.errors.password = [];
+		},
+		parseBol(value) {
+			if (value) {
+				return 1;
+			} else {
+				return 0;
+			}
 		},
 	},
 };

@@ -9,12 +9,23 @@ import AXIOS from "axios";
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { defineCustomElements } from '@ionic/pwa-elements/loader';
+import izi_Toast from 'izitoast'
+import "./plugins/iziToast.min.css"
 
 window.platform = Capacitor.getPlatform();
 window._ = require('./plugins/lodash_plugins/lodash.min.js');
+window.toast = izi_Toast
 
 Vue.config.productionTip = false
-window.axios = AXIOS;
+
+const __BASE_URL_SERVER = 'http://192.168.1.3:8888/';
+const __API_PREFIX = 'api'
+// window.axios = AXIOS;
+window.axios = AXIOS.create({
+  baseURL: `${__BASE_URL_SERVER}${__API_PREFIX}`,
+  timeout: 3000,
+});
+window.__BASE_URL__ = __BASE_URL_SERVER
 
 new Vue({
   router,
