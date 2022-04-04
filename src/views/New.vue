@@ -2,7 +2,13 @@
 	<div style="height: 100%; width: 100%" id="newPol">
 		<v-speed-dial :top="false" :bottom="true" :right="true" :left="false">
 			<template v-slot:activator>
-				<v-btn color="prim-grad" dark fab @click="savePoll">
+				<v-btn
+					color="prim-grad"
+					dark
+					fab
+					@click="savePoll"
+					:loading="loadingBtn"
+				>
 					<v-icon> mdi-check </v-icon>
 				</v-btn>
 			</template>
@@ -466,6 +472,7 @@ export default {
 			detailsDialog: false,
 			restricDialog: false,
 			alertOpt: false,
+			loadingBtn: false,
 			wHeight: window.innerHeight,
 			errors: {
 				description: [],
@@ -559,7 +566,7 @@ export default {
 						this.answers[idx].img_type = result.format;
 						this.fetchImg(
 							result.webPath,
-							`a_img.${result.format}`,
+							`${idx}.${result.format}`,
 							`image/${result.format}`
 						).then((file) => {
 							this.answers[idx].img_file = file;
@@ -610,13 +617,14 @@ export default {
 			this.$router.push({ name: "my.poll" });
 		},
 		savePoll() {
+			this.loadingBtn = true;
 			this.resetErrors();
-			console.log(this.deadlineValue);
+			// console.log(this.deadlineValue);
 			let bodyFormData = new FormData();
 			bodyFormData.append("question", this.question.title);
 			bodyFormData.append("description", this.question.description);
 			bodyFormData.append("q_img", this.question.img_file);
-			
+
 			if (this.deadlineValue !== null) {
 				bodyFormData.append("deadline", this.deadlineValue);
 			}
@@ -632,37 +640,35 @@ export default {
 			}
 			bodyFormData.append("with_device_res", this.parseBol(this.deviceRest));
 
-			bodyFormData.append("req_email", this.parseBol(this.$store.getters.getReqEmail));
-			bodyFormData.append("req_name", this.parseBol(this.$store.getters.getReqName));
+			bodyFormData.append(
+				"req_email",
+				this.parseBol(this.$store.getters.getReqEmail)
+			);
+			bodyFormData.append(
+				"req_name",
+				this.parseBol(this.$store.getters.getReqName)
+			);
 
 			// console.log(this.answers);
 			bodyFormData.append("answers", JSON.stringify(this.answers));
 
-			this.answers.forEach(element => {
+			let a_file = [];
+			this.answers.forEach((element, i) => {
+				// console.log(element);
 				bodyFormData.append("a_img[]", element.img_file);
 			});
-
-			// console.log(this.question);
-			// // console.log();
 			axios
-				.post("poll/create", bodyFormData)
+				.post("p/create", bodyFormData)
 				.then((response) => {
+					this.loadingBtn = false;
 					console.log(response);
 				})
 				.catch((e) => {
+					this.loadingBtn = false;
 					// console.log(e);
 					Object.assign(this.errors, e.response.data.errors);
 					console.log(e.response);
 				});
-
-			// axios
-			// 	.post("http://192.168.1.3:8888/api/testing", bodyFormData)
-			// 	.then((response) => {
-			// 		console.log(response.data);
-			// 	})
-			// 	.catch((e) => {
-			// 		console.log(e);
-			// 	});
 
 			// this.$router.back();
 		},
