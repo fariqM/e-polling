@@ -36,7 +36,7 @@ const routes = [
         component: History
       },
       {
-        path: 'new-poll',
+        path: 'my-poll',
         name: 'my.poll',
         component: MyPoll
       },

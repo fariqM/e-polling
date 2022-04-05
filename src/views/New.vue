@@ -429,6 +429,7 @@
 
 <script>
 import { Camera, CameraResultType } from "@capacitor/camera";
+import { Device } from "@capacitor/device";
 
 export default {
 	data() {
@@ -619,56 +620,60 @@ export default {
 		savePoll() {
 			this.loadingBtn = true;
 			this.resetErrors();
-			// console.log(this.deadlineValue);
-			let bodyFormData = new FormData();
-			bodyFormData.append("question", this.question.title);
-			bodyFormData.append("description", this.question.description);
-			bodyFormData.append("q_img", this.question.img_file);
+			this.getDeviceId().then((deviceId) => {
+				let bodyFormData = new FormData();
+				bodyFormData.append("owner_id", deviceId.uuid);
+				bodyFormData.append("question", this.question.title);
+				bodyFormData.append("description", this.question.description);
+				bodyFormData.append("q_img", this.question.img_file);
 
-			if (this.deadlineValue !== null) {
-				bodyFormData.append("deadline", this.deadlineValue);
-			}
+				if (this.deadlineValue !== null) {
+					bodyFormData.append("deadline", this.deadlineValue);
+				}
 
-			bodyFormData.append("with_password", this.parseBol(this.protectPassword));
-			if (this.protectPassword) {
-				bodyFormData.append("password", this.password);
-			}
+				bodyFormData.append(
+					"with_password",
+					this.parseBol(this.protectPassword)
+				);
+				if (this.protectPassword) {
+					bodyFormData.append("password", this.password);
+				}
 
-			bodyFormData.append("with_area_res", this.parseBol(this.areaRest));
-			if (this.protectArea) {
-				bodyFormData.append("area", this.area);
-			}
-			bodyFormData.append("with_device_res", this.parseBol(this.deviceRest));
+				bodyFormData.append("with_area_res", this.parseBol(this.areaRest));
+				if (this.protectArea) {
+					bodyFormData.append("area", this.area);
+				}
+				bodyFormData.append("with_device_res", this.parseBol(this.deviceRest));
 
-			bodyFormData.append(
-				"req_email",
-				this.parseBol(this.$store.getters.getReqEmail)
-			);
-			bodyFormData.append(
-				"req_name",
-				this.parseBol(this.$store.getters.getReqName)
-			);
+				bodyFormData.append(
+					"req_email",
+					this.parseBol(this.$store.getters.getReqEmail)
+				);
+				bodyFormData.append(
+					"req_name",
+					this.parseBol(this.$store.getters.getReqName)
+				);
 
-			// console.log(this.answers);
-			bodyFormData.append("answers", JSON.stringify(this.answers));
+				bodyFormData.append("answers", JSON.stringify(this.answers));
 
-			let a_file = [];
-			this.answers.forEach((element, i) => {
-				// console.log(element);
-				bodyFormData.append("a_img[]", element.img_file);
-			});
-			axios
-				.post("p/create", bodyFormData)
-				.then((response) => {
-					this.loadingBtn = false;
-					console.log(response);
-				})
-				.catch((e) => {
-					this.loadingBtn = false;
-					// console.log(e);
-					Object.assign(this.errors, e.response.data.errors);
-					console.log(e.response);
+				let a_file = [];
+				this.answers.forEach((element, i) => {
+					// console.log(element);
+					bodyFormData.append("a_img[]", element.img_file);
 				});
+				axios
+					.post("p/create", bodyFormData)
+					.then((response) => {
+						this.loadingBtn = false;
+						console.log(response);
+					})
+					.catch((e) => {
+						this.loadingBtn = false;
+						// console.log(e);
+						Object.assign(this.errors, e.response.data.errors);
+						console.log(e.response);
+					});
+			});
 
 			// this.$router.back();
 		},
@@ -735,6 +740,9 @@ export default {
 			} else {
 				return 0;
 			}
+		},
+		async getDeviceId() {
+			return await Device.getId();
 		},
 	},
 };

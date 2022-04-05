@@ -12,6 +12,8 @@ import { defineCustomElements } from '@ionic/pwa-elements/loader';
 import izi_Toast from 'izitoast'
 import "./plugins/iziToast.min.css"
 
+
+
 window.platform = Capacitor.getPlatform();
 window._ = require('./plugins/lodash_plugins/lodash.min.js');
 window.toast = izi_Toast
@@ -26,6 +28,9 @@ window.axios = AXIOS.create({
   timeout: 3000,
 });
 window.__BASE_URL__ = __BASE_URL_SERVER
+
+
+
 
 new Vue({
   router,

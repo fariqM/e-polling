@@ -38,6 +38,14 @@ export default {
 		rgba(12, 59, 102, 1) 100%
 	);
 }
+.prim-grad-2 {
+	background: linear-gradient(
+		145deg,
+		rgb(16 141 223 / 63%) 0%,
+		rgb(8 115 191 / 64%) 41%,
+		rgb(12 59 102 / 64%) 100%
+	);
+}
 .ellipsis-text {
 	white-space: nowrap;
 	overflow: hidden;
