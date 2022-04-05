@@ -20,7 +20,7 @@
 					</template>
 				</v-speed-dial>
 
-				<div v-if="deviceReady" style="height: 100%">
+				<div v-if="deviceReady && pollings.length > 0" style="height: 100%">
 					<v-subheader class="pa-0 ma-0 c-subheader noselect"
 						>My Polling List</v-subheader
 					>
@@ -43,18 +43,30 @@
 										style="font-size: 1.2rem; font-weight: 600; max-width: 100%"
 										class="ellipsis-text"
 									>
-										{{ polling.title }}
+										{{ polling.question }}
 									</div>
-									<div style="font-size: 0.9rem">{{ polling.total }} Vote</div>
+									<div style="font-size: 0.9rem">
+										{{ polling.voters.length }} Vote
+									</div>
 								</div>
 								<div>
 									<v-avatar tile size="60">
-										<v-img src="https://picsum.photos/id/11/500/300"></v-img>
+										<v-img
+											:src="`${serverUrl}storage/img/${polling.q_img}`"
+										></v-img>
 									</v-avatar>
 								</div>
 							</div>
 						</v-card>
 					</v-sheet>
+				</div>
+
+				<div
+					v-else
+					class="d-flex align-center justify-center"
+					style="height: 100%"
+				>
+					{{ text }}
 				</div>
 			</div>
 		</v-container>
@@ -63,60 +75,43 @@
 
 <script>
 import { Device } from "@capacitor/device";
-import { mapGetters } from "vuex";
+import { Storage } from "@capacitor/storage";
 
 export default {
 	data() {
 		return {
-			pollings: [
-				{
-					title: "Polling Title Example",
-					total: 4,
-				},
-				{
-					title:
-						"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-					total: 4,
-				},
-				{
-					title:
-						"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,",
-					total: 4,
-				},
-				{
-					title: "Polling Title Example",
-					total: 4,
-				},
-				{
-					title:
-						"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-					total: 4,
-				},
-				{
-					title:
-						"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,",
-					total: 4,
-				},
-				{
-					title: "Polling Title Example",
-					total: 4,
-				},
-				{
-					title:
-						"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-					total: 4,
-				},
-				{
-					title:
-						"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,",
-					total: 4,
-				},
-			],
-			deviceReady: true,
+			pollings: [],
+			deviceReady: false,
+			serverUrl: window.__BASE_URL__,
+			text: "You haven't created any poll yet",
 		};
 	},
 	mounted() {
-		this.getMyPolling();
+		this.checkStorage().then((result) => {
+			if (result === null || result == undefined) {
+				this.getDeviceId().then((deviceId) => {
+					this.fetchPollData(deviceId)
+						.then((response) => {
+							const data = response.data.data.slice();
+							this.setPoll(JSON.stringify(data));
+							this.pollings = data;
+							this.deviceReady = true;
+						})
+						.catch((e) => {
+							this.deviceReady = true;
+							if (e.response) {
+								this.text = e.response.data.message;
+							} else {
+								this.text = "Connection error, please check your internet.";
+							}
+						});
+				});
+			} else {
+				const pollStorage = JSON.parse(result);
+				this.pollings = pollStorage.slice();
+				this.deviceReady = true;
+			}
+		});
 	},
 	computed: {
 		myPoll: {
@@ -130,22 +125,33 @@ export default {
 		},
 	},
 	methods: {
-		getMyPolling() {
-			this.getDeviceId().then((deviceId) => {
+		async checkStorage() {
+			const { value } = await Storage.get({ key: "myPoll" });
+			return value;
+		},
+
+		async getDeviceId() {
+			return await Device.getId();
+		},
+
+		async setPoll(myPoll) {
+			await Storage.set({
+				key: "myPoll",
+				value: myPoll,
+			});
+		},
+
+		fetchPollData(deviceId) {
+			return new Promise((resolve, reject) => {
 				axios
 					.get(`my-poll/${deviceId.uuid}`)
 					.then((response) => {
-						// this.loading = false
-						// console.log(response);
+						resolve(response);
 					})
 					.catch((e) => {
-						console.log(e);
+						reject(e);
 					});
 			});
-		},
-		prepareData() {},
-		async getDeviceId() {
-			return await Device.getId();
 		},
 	},
 };
