@@ -59,6 +59,8 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
 	data() {
 		return {
@@ -66,28 +68,38 @@ export default {
 			loading: false,
 		};
 	},
-	mounted(){
-		const pol = this.myPoll
+	mounted() {
+		if (this.myPoll === null) {
+			if (this.value === "poll") {
+				this.loading = true;
+			}
+		}
 	},
 	computed: {
-		myPoll: {
-			get: function () {
-				let poll = this.$store.getters.getMyPoll;
-				if (poll == null) {
+		...mapGetters({
+			myPoll: "getMyPoll",
+		}),
+	},
+	watch: {
+		myPoll: function (newVal) {
+			if (newVal !== null) {
+				this.loading = false;
+			} else {
+				if (this.value === "poll") {
+					this.loading = true;
+				}
+			}
+		},
+		value: function(newVal) {
+			if (newVal === "poll") {
+				if (this.myPoll === null) {
 					this.loading = true;
 				} else {
 					this.loading = false;
 				}
-				return poll;
-			},
-			// setter
-			set: function (newValue) {
-				if (newValue == null) {
-					this.loading = true;
-				}
-			},
-		},
-	},	
+			}
+		}
+	},
 };
 </script>
 

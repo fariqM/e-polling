@@ -22,7 +22,7 @@ export default new Vuex.Store({
       state.req_name = payload
     },
     setMyPoll: (state, payload) => {
-      state.getMyPoll = payload
+      state.myPoll = payload
     },
   },
   actions: {

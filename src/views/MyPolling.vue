@@ -96,6 +96,7 @@ export default {
 							this.setPoll(JSON.stringify(data));
 							this.pollings = data;
 							this.deviceReady = true;
+							this.myPoll = 1
 						})
 						.catch((e) => {
 							this.deviceReady = true;
@@ -110,6 +111,7 @@ export default {
 				const pollStorage = JSON.parse(result);
 				this.pollings = pollStorage.slice();
 				this.deviceReady = true;
+				this.myPoll = 1
 			}
 		});
 	},
