@@ -89,7 +89,27 @@
 						</v-btn>
 					</div>
 					<v-divider class="ma-0" style="border-color: #f0f8ff59" />
-					<div>oke</div>
+					<div
+						class="d-flex justify-space-between align-center my-2"
+						v-for="(answer, i) in polling.answers"
+						:key="i"
+					>
+						<div>
+							<div class="answer-title" v-if="answer.text !== null || answer.text !== ''">
+								{{ answer.text }}
+							</div>
+                            <div class="answer-title"  v-if="answer.text === null || answer.text === ''">
+                               (No-Text)
+                            </div>
+							<div>total votes</div>
+						</div>
+						<v-avatar tile size="60" v-if="answer.a_img !== null">
+							<v-img
+								:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
+								:lazy-src="require('../assets/logo.png')"
+							/>
+						</v-avatar>
+					</div>
 				</div>
 			</div>
 		</v-main>
@@ -110,6 +130,7 @@ export default {
 			link: null,
 			alertCopy: false,
 			polling: null,
+			totalVoters: null,
 		};
 	},
 	mounted() {
@@ -121,6 +142,7 @@ export default {
 		if (param.ownerId) {
 			this.polling = param.polling;
 			this.link = `https://polling-pol.site/p/${param.polling.dir}`;
+			this.totalVoters = param.polling.voters.length;
 			this.pageReady = true;
 		} else {
 			this.notFound = true;
@@ -152,4 +174,7 @@ export default {
 </script>
 
 <style>
+.answer-title{
+    font-size: 1.4rem; font-weight: 500
+}
 </style>

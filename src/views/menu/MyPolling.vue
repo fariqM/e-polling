@@ -47,7 +47,7 @@
 										{{ polling.question }}
 									</div>
 									<div style="font-size: 0.9rem">
-										{{ polling.voters.length }} Vote
+										<!-- {{ polling.voters.length }} Vote -->
 									</div>
 								</div>
 								<div>
@@ -101,6 +101,7 @@ export default {
 			deviceReady: false,
 			serverUrl: window.__BASE_URL__,
 			text: "You haven't created any poll yet",
+			totalVoters: null
 		};
 	},
 	mounted() {
@@ -189,6 +190,7 @@ export default {
 				axios
 					.get(`my-poll/${deviceId.uuid}`)
 					.then((response) => {
+						console.log(response);
 						resolve(response);
 					})
 					.catch((e) => {
