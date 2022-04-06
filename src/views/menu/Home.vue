@@ -3,7 +3,7 @@
 		<v-row class="text-center" align="center">
 			<v-col cols="12" class="pa-0">
 				<v-img
-					:src="require('../assets/poll.png')"
+					:src="require('../../assets/poll.png')"
 					class="my-3"
 					contain
 					height="250"

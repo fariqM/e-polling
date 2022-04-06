@@ -36,6 +36,7 @@
 							v-for="(polling, i) in pollings"
 							:key="i"
 							v-ripple
+							@click="showPolling(polling)"
 						>
 							<div class="d-flex justify-space-between align-center">
 								<div style="max-width: 80%">
@@ -52,7 +53,20 @@
 								<div>
 									<v-avatar tile size="60">
 										<v-img
+											:lazy-src="require('../../assets/logo.png')"
 											:src="`${serverUrl}storage/img/${polling.q_img}`"
+										>
+											<template v-slot:placeholder>
+												<v-row
+													class="fill-height ma-0"
+													align="center"
+													justify="center"
+												>
+													<v-progress-circular
+														indeterminate
+														color="grey lighten-5"
+													></v-progress-circular>
+												</v-row> </template
 										></v-img>
 									</v-avatar>
 								</div>
@@ -96,7 +110,7 @@ export default {
 							this.setPoll(JSON.stringify(data));
 							this.pollings = data;
 							this.deviceReady = true;
-							this.myPoll = 1
+							this.myPoll = data;
 						})
 						.catch((e) => {
 							this.deviceReady = true;
@@ -108,10 +122,23 @@ export default {
 						});
 				});
 			} else {
+				// console.log("storage exist");
 				const pollStorage = JSON.parse(result);
 				this.pollings = pollStorage.slice();
 				this.deviceReady = true;
-				this.myPoll = 1
+				this.getDeviceId().then((deviceId) => {
+					// console.log(deviceId);
+					this.fetchPollData(deviceId)
+						.then((response) => {
+							const data = response.data.data.slice();
+							this.setPoll(JSON.stringify(data));
+							this.pollings = data;
+							this.myPoll = data;
+						})
+						.catch((e) => {
+							console.log(e);
+						});
+				});
 			}
 		});
 	},
@@ -127,6 +154,9 @@ export default {
 		},
 	},
 	methods: {
+		showPolling(polling) {
+			console.log(polling);
+		},
 		async checkStorage() {
 			const { value } = await Storage.get({ key: "myPoll" });
 			return value;
