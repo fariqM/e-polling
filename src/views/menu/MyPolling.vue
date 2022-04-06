@@ -47,7 +47,7 @@
 										{{ polling.question }}
 									</div>
 									<div style="font-size: 0.9rem">
-										<!-- {{ polling.voters.length }} Vote -->
+										{{ countTotalVoters(polling.answers) }} Vote
 									</div>
 								</div>
 								<div>
@@ -70,7 +70,7 @@
 										></v-img>
 									</v-avatar>
 									<v-avatar tile size="60" v-else>
-										<v-img :src="require('../../assets/no_img.png')"/>
+										<v-img :src="require('../../assets/no_img.png')" />
 									</v-avatar>
 								</div>
 							</div>
@@ -101,7 +101,6 @@ export default {
 			deviceReady: false,
 			serverUrl: window.__BASE_URL__,
 			text: "You haven't created any poll yet",
-			totalVoters: null
 		};
 	},
 	mounted() {
@@ -190,13 +189,19 @@ export default {
 				axios
 					.get(`my-poll/${deviceId.uuid}`)
 					.then((response) => {
-						console.log(response);
 						resolve(response);
 					})
 					.catch((e) => {
 						reject(e);
 					});
 			});
+		},
+		countTotalVoters(answers) {
+			let totalVoters = 0;
+			answers.forEach((element) => {
+				totalVoters += element.voters.length;
+			});
+			return totalVoters;
 		},
 	},
 };

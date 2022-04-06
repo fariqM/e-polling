@@ -142,7 +142,7 @@ export default {
 		if (param.ownerId) {
 			this.polling = param.polling;
 			this.link = `https://polling-pol.site/p/${param.polling.dir}`;
-			this.totalVoters = param.polling.voters.length;
+			// this.totalVoters = param.polling.voters.length;
 			this.pageReady = true;
 		} else {
 			this.notFound = true;
@@ -169,6 +169,9 @@ export default {
 				}, 2000);
 			}
 		},
+        countVotes(answer, voters){
+
+        }
 	},
 };
 </script>
