@@ -27,6 +27,8 @@
 					placeholder="Insert a link or polling code"
 					label="Polling Address"
 					v-model="pol_address"
+					append-icon="mdi-content-paste"
+					@click:append="pasteLink"
 					:error-messages="err_msg"
 				></v-text-field>
 				<v-btn tile @click="goToPoll" class="prim-grad" :loading="btnLoading"
@@ -38,6 +40,8 @@
 </template>
 
 <script>
+import { Clipboard } from "@capacitor/clipboard";
+
 export default {
 	data() {
 		return {
@@ -47,16 +51,29 @@ export default {
 		};
 	},
 	methods: {
+		async pasteLink() {
+			const { type, value } = await Clipboard.read();
+			if (type === "text/plain") {
+				this.pol_address = value;
+			}
+		},
 		goToPoll() {
 			if (this.pol_address === "") {
 				this.err_msg = "Please inser a polling url";
 			} else {
 				this.btnLoading = true;
+				let link = "";
+				if (this.pol_address.includes(".site")) {
+					link = this.pol_address.split(".site/p/").pop();
+				} else {
+					link = this.pol_address;
+				}
+
 				setTimeout(() => {
 					this.btnLoading = false;
 					this.$router.push({
 						name: "polling",
-						params: { pollingUrl: this.pol_address },
+						params: { pollingUrl: link },
 					});
 				}, 1200);
 			}

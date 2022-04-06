@@ -10,6 +10,7 @@ import Landing from '../views/Landing'
 import BaseMenuLayout from '../views/menu/Layout'
 import MyPoll from '../views/menu/MyPolling'
 import ReqDetails from '../views/Reqdetails'
+import ShowPoll from '..//views/ShowMyPoll'
 
 
 Vue.use(VueRouter)
@@ -51,6 +52,11 @@ const routes = [
     path: '/new-poll',
     name: 'new.poll',
     component: NewPoll
+  },
+  {
+    path: '/{:ownerId}/{:pollingUrl}/show',
+    name: 'show.poll',
+    component: ShowPoll
   },
   {
     path: '/new-poll/r-details',

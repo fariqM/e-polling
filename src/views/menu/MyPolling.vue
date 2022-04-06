@@ -51,7 +51,7 @@
 									</div>
 								</div>
 								<div>
-									<v-avatar tile size="60">
+									<v-avatar tile size="60" v-if="polling.q_img !== null">
 										<v-img
 											:lazy-src="require('../../assets/logo.png')"
 											:src="`${serverUrl}storage/img/${polling.q_img}`"
@@ -68,6 +68,9 @@
 													></v-progress-circular>
 												</v-row> </template
 										></v-img>
+									</v-avatar>
+									<v-avatar tile size="60" v-else>
+										<v-img :src="require('../../assets/no_img.png')"/>
 									</v-avatar>
 								</div>
 							</div>
@@ -155,7 +158,15 @@ export default {
 	},
 	methods: {
 		showPolling(polling) {
-			console.log(polling);
+			this.$router.push({
+				name: "show.poll",
+				params: {
+					ownerId: polling.owner_id,
+					pollingUrl: polling.dir,
+					polling: polling,
+				},
+			});
+			// console.log(polling);
 		},
 		async checkStorage() {
 			const { value } = await Storage.get({ key: "myPoll" });

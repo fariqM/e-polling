@@ -1,13 +1,13 @@
 <template>
 	<div style="height: 100%; width: 100%">
-		<v-app-bar color="prim-grad" dense>
+		<v-app-bar color="prim-grad" absolute dense>
 			<v-btn icon @click="navigation_back">
 				<v-icon>mdi-chevron-left</v-icon>
 			</v-btn>
 			<v-toolbar-title>Polling Details</v-toolbar-title>
 			<v-spacer />
 			<v-btn icon>
-				<v-icon>mdi-dots-vertical</v-icon>
+				<v-icon>mdi-circle-edit-outline</v-icon>
 			</v-btn>
 		</v-app-bar>
 		<v-main style="width: 100%">
@@ -27,24 +27,32 @@
 					<v-icon size="70" color="primary" v-else>mdi-reload</v-icon>
 				</div>
 			</div>
-			<div v-else>
+			<div
+				v-else
+				style="max-height: calc(100vh - 55px); margin-top: 48px"
+				class="overflow-y-auto"
+			>
 				<v-img
-					width="100%"
-					src="https://cdn.vuetifyjs.com/images/cards/server-room.jpg"
+					v-if="polling.q_img !== null"
+					:src="`${serverUrl}storage/img/${polling.q_img}`"
+					:lazy-src="require('../assets/logo.png')"
+					contain
 				>
-					<!-- <div style="height:100%" class="d-flex justify-start align-end ">
-						<div class="prim-grad-2 pa-2">
-							Lorem ipsum dolor sit amet, consectetur adipiscing . 
-						</div>
-					</div> -->
+					<template v-slot:placeholder>
+						<v-row class="fill-height ma-0" align="center" justify="center">
+							<v-progress-circular
+								indeterminate
+								color="grey lighten-5"
+							></v-progress-circular>
+						</v-row>
+					</template>
 				</v-img>
 				<div class="pa-2">
 					<div style="font-size: 1.6rem; font-weight: 600">
-						Lorem ipsum dolor sit amet, consectetur adipiscing .
+						{{ polling.question }}
 					</div>
 					<div>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-						eiusmod tempor incididunt ut labore et dolore magna aliqua.
+						{{ polling.description }}
 					</div>
 					<div class="my-3">
 						<!-- <b>Poll Link : </b> -->
@@ -81,6 +89,7 @@
 						</v-btn>
 					</div>
 					<v-divider class="ma-0" style="border-color: #f0f8ff59" />
+					<div>oke</div>
 				</div>
 			</div>
 		</v-main>
@@ -88,44 +97,49 @@
 </template>
 
 <script>
+import { Clipboard } from "@capacitor/clipboard";
+// import { Clipboard } from "@awesome-cordova-plugins/clipboard"
+
 export default {
 	data() {
 		return {
+			serverUrl: window.__BASE_URL__,
 			polling_params: "",
 			pageReady: false,
 			notFound: false,
 			link: null,
 			alertCopy: false,
+			polling: null,
 		};
 	},
 	mounted() {
-		const dir = this.$router.history.current.params.pollingUrl
-		this.polling_params = dir;
-		this.link = `https://polling-pol.site/p/${dir}`
-		this.getPolling();
+		// console.log(this.$router);
+		const param = this.$router.history.current.params;
+		this.polling_params = param;
+		console.log(param.polling);
+
+		if (param.ownerId) {
+			this.polling = param.polling;
+			this.link = `https://polling-pol.site/p/${param.polling.dir}`;
+			this.pageReady = true;
+		} else {
+			this.notFound = true;
+		}
+		// console.log(this.polling_params);
+		// this.getPolling();
 	},
 	methods: {
 		navigation_back() {
-			this.$router.push({ name: "home" });
+			this.$router.push({ name: "my.poll" });
 		},
-		getPolling() {
-			// setTimeout(() => {}, 1000);
-			axios
-				.get(`p/${this.polling_params}`)
-				.then((response) => {
-					this.pageReady = true
-				})
-				.catch((e) => {
-					if (e.response.status) {
-						this.notFound = true;
-					}
-				});
-		},
-		copyLink() {
+		async copyLink() {
 			if (!this.alertCopy) {
+				await Clipboard.write({
+					string: this.link,
+				});
 				this.alertCopy = true;
 				toast.info({
-					message: "The link has been copied.",
+					message: "Link has been copied.",
 					timeout: 1900,
 				});
 				setTimeout(() => {
