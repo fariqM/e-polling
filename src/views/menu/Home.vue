@@ -50,6 +50,12 @@ export default {
 			btnLoading: false,
 		};
 	},
+	// mounted() {
+	// 	document.addEventListener("backbutton", this.yourCallBackFunction(), false);
+	// },
+	// beforeDestroy() {
+	// 	document.removeEventListener("backbutton", this.yourCallBackFunction());
+	// },
 	methods: {
 		async pasteLink() {
 			const { type, value } = await Clipboard.read();
@@ -80,6 +86,9 @@ export default {
 		},
 		inputFocus() {
 			this.err_msg = "";
+		},
+		yourCallBackFunction() {
+			// console.log('wooops');
 		},
 	},
 };

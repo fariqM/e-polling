@@ -56,4 +56,7 @@ export default {
 	font-weight: 500 !important;
 	color: #f0f8ff !important;
 }
+.poll-container {
+	padding: 12px;
+}
 </style>

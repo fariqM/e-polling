@@ -91,6 +91,7 @@ export default {
 			}
 		},
 		value: function(newVal) {
+			// console.log(newVal);
 			if (newVal === "poll") {
 				if (this.myPoll === null) {
 					this.loading = true;

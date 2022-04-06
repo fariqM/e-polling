@@ -28,7 +28,7 @@
 				</div>
 			</div>
 			<div
-				v-else
+                v-if="pageReady"
 				style="max-height: calc(100vh - 55px); margin-top: 48px"
 				class="overflow-y-auto"
 			>
@@ -47,7 +47,7 @@
 						</v-row>
 					</template>
 				</v-img>
-				<div class="pa-2">
+				<div class="poll-container">
 					<div style="font-size: 1.6rem; font-weight: 600">
 						{{ polling.question }}
 					</div>
@@ -90,24 +90,44 @@
 					</div>
 					<v-divider class="ma-0" style="border-color: #f0f8ff59" />
 					<div
+						v-ripple
 						class="d-flex justify-space-between align-center my-2"
 						v-for="(answer, i) in polling.answers"
 						:key="i"
 					>
 						<div>
-							<div class="answer-title" v-if="answer.text !== null || answer.text !== ''">
+							<div
+								class="answer-title"
+								v-if="answer.text !== null || answer.text !== ''"
+							>
 								{{ answer.text }}
 							</div>
-                            <div class="answer-title"  v-if="answer.text === null || answer.text === ''">
-                               (No-Text)
-                            </div>
-							<div>total votes</div>
+							<div
+								class="answer-title"
+								v-if="answer.text === null || answer.text === ''"
+							>
+								(No-Text)
+							</div>
+							<div class="d-flex">
+								<div>{{ answer.voters.length }} votes |</div>
+								<div class="ml-1" v-if="totalVoters > 0">
+									{{
+										((answer.voters.length / totalVoters) * 100)
+											.toString()
+											.substring(0, 4)
+									}}%
+								</div>
+								<div class="ml-1" v-else>0%</div>
+							</div>
 						</div>
 						<v-avatar tile size="60" v-if="answer.a_img !== null">
 							<v-img
 								:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
 								:lazy-src="require('../assets/logo.png')"
 							/>
+						</v-avatar>
+						<v-avatar tile size="60" v-else>
+							<v-img :src="require('../assets/no_img.png')" />
 						</v-avatar>
 					</div>
 				</div>
@@ -137,17 +157,17 @@ export default {
 		// console.log(this.$router);
 		const param = this.$router.history.current.params;
 		this.polling_params = param;
-		console.log(param.polling);
 
 		if (param.ownerId) {
 			this.polling = param.polling;
 			this.link = `https://polling-pol.site/p/${param.polling.dir}`;
-			// this.totalVoters = param.polling.voters.length;
+			this.totalVoters = this.countVotes(param.polling.answers);
+			// console.log(this.totalVoters);
 			this.pageReady = true;
 		} else {
 			this.notFound = true;
 		}
-		// console.log(this.polling_params);
+		// console.log(this.polling);
 		// this.getPolling();
 	},
 	methods: {
@@ -169,15 +189,20 @@ export default {
 				}, 2000);
 			}
 		},
-        countVotes(answer, voters){
-
-        }
+		countVotes(answers) {
+			let totalVoters = 0;
+			answers.forEach((element) => {
+				totalVoters += element.voters.length;
+			});
+			return totalVoters;
+		},
 	},
 };
 </script>
 
 <style>
-.answer-title{
-    font-size: 1.4rem; font-weight: 500
+.answer-title {
+	font-size: 1.4rem;
+	font-weight: 500;
 }
 </style>
