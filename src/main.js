@@ -25,7 +25,6 @@ const __API_PREFIX = 'api'
 // window.axios = AXIOS;
 window.axios = AXIOS.create({
   baseURL: `${__BASE_URL_SERVER}${__API_PREFIX}`,
-  timeout: 3000,
 });
 window.__BASE_URL__ = __BASE_URL_SERVER
 
