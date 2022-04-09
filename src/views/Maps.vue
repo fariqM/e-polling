@@ -1,79 +1,9 @@
 <template>
-	<v-main>
-		<v-row
-			justify="center"
-			align="center"
-			no-gutters
-			class="mt-2"
-			style="width: 100%"
-		>
-			<div style="width: 100%">
-				<div style="width: 100%">
-					<div style="height: 70vh; width: 100%" id="map"></div>
-				</div>
-
-				<!-- <div class="info" style="width: 100%">
-					
-				</div> -->
-				<div
-					class="ml-4"
-					style="position: absolute; top: 1.2rem; max-width: 90vw"
-				>
-					<div>
-						<v-autocomplete
-							:loading="loading"
-							:items="items"
-							:search-input.sync="search"
-							class="pa-0"
-							flat
-							hide-no-data
-							hide-details
-							label="Cari Alamat"
-							no-filter
-							v-click-outside="notFocus"
-							item-value="id"
-							filled
-							clearable
-							:autofocus="false"
-							v-model="select"
-						>
-							<template v-slot:item="data">
-								<template>
-									<v-list-item-content
-										:key="data.item.id"
-										@click="moveToSomewhere(data.item)"
-									>
-										<v-list-item-title>
-											{{ data.item.text }}
-										</v-list-item-title>
-										<v-list-item-subtitle>
-											{{ data.item.place_name }}
-										</v-list-item-subtitle>
-									</v-list-item-content>
-								</template>
-							</template>
-						</v-autocomplete>
-					</div>
-				</div>
-			</div>
-		</v-row>
-		<v-row justify="start" align="center" no-gutters class="mt-2">
-			<v-subheader>
-				My Device is => <b>{{ platform }}</b></v-subheader
-			>
-			<v-subheader>
-				My Coords => .. <b>{{ myCoord }}</b></v-subheader
-			>
-		</v-row>
-		<div class="d-flex justify-space-around">
-			<v-btn @click="PolyTest" class="warning" :loading="btnLoading">
-				{{ btnText }}
-			</v-btn>
-			<v-btn @click="PolyTest2" class="primary" :loading="btnLoading2">
-				{{ btnText2 }}
-			</v-btn>
+	<div style="width: 100%">
+		<div style="width: 100%">
+			<div style="height: 200px; width: 100%" id="map"></div>
 		</div>
-	</v-main>
+	</div>
 </template>
 
 <script>
@@ -82,19 +12,23 @@ import { Geolocation } from "@awesome-cordova-plugins/geolocation";
 import { AndroidPermissions } from "@awesome-cordova-plugins/android-permissions";
 import { LocationAccuracy } from "@awesome-cordova-plugins/location-accuracy";
 import mapboxgl from "mapbox-gl";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+// import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 // polygon data
 // import KrianPolygon from "../data/krian";
-// import PonokawanPolygon from "../data/ponokawan";
-// import MojosantrenPolygon from "../data/mojosantren";
-import UinsaPolygon from "../data/uinsa";
-import BayangPolygon from "../data/bayang";
-import SinfPolygon from "../data/sinf"
+import PonokawanPolygon from "../data/ponokawan";
+import MojosantrenPolygon from "../data/mojosantren";
+// import UinsaPolygon from "../data/uinsa";
+// import BayangPolygon from "../data/bayang";
+// import SinfPolygon from "../data/sinf";
 
 export default {
+	props: {
+		checkBtn: Boolean,
+	},
+
 	data() {
 		return {
 			platform: "",
@@ -122,16 +56,28 @@ export default {
 		};
 	},
 
-	beforeRouteEnter(to, from, next) {
-		next((vm) => {
-			vm.startChecking();
-			next();
-			// access to component instance via `vm`
-		});
-	},
+	// beforeRouteEnter(to, from, next) {
+	// 	next((vm) => {
+	// 		vm.startChecking();
+	// 		next();
+	// 		// access to component instance via `vm`
+	// 	});
+	// },
 	watch: {
 		search(val) {
 			val && val !== this.select && this.querySelections(val);
+		},
+		checkBtn(newVal) {
+			if (newVal) {
+				this.PolyTest()
+					.then((result) => {
+						this.$emit("checkArea", result);
+						console.log(result);
+					})
+					.catch((e) => {
+						console.log(e);
+					});
+			}
 		},
 	},
 
@@ -140,6 +86,16 @@ export default {
 		// console.log(MojosantrenPolygon);
 
 		this.setMap();
+		this.startChecking().then(() => {
+			this.PolyTest()
+				.then((result) => {
+					this.$emit("checkArea", result);
+					console.log(result);
+				})
+				.catch((e) => {
+					console.log(e);
+				});
+		});
 
 		// console.log(this.items.length);
 		this.items2.unshift({ header: "Group 1" });
@@ -147,32 +103,8 @@ export default {
 	},
 
 	methods: {
-		ray_casting(point, polygon) {
-			console.log("start calculating");
-			var n = polygon.length,
-				is_in = false,
-				x = point[0],
-				y = point[1],
-				x1,
-				x2,
-				y1,
-				y2;
-			console.log("length n => " + n);
-			for (var i = 0; i < n - 1; ++i) {
-				x1 = polygon[i][0];
-				x2 = polygon[i + 1][0];
-				y1 = polygon[i][1];
-				y2 = polygon[i + 1][1];
-				console.log("processing...");
-				if (y < y1 != y < y2 && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1) {
-					is_in = !is_in;
-				}
-			}
-			console.log("result ... => " + is_in);
-			return is_in;
-		},
 		moveToSomewhere(value) {
-			console.log(this.findLocMarker);
+			// console.log(this.findLocMarker);
 			if (this.findLocMarker !== null) {
 				this.findLocMarker.remove();
 			}
@@ -185,53 +117,76 @@ export default {
 				essential: true, // this animation is considered essential with respect to prefers-reduced-motion
 			});
 		},
+		ray_casting(point, polygon) {
+			// console.log("start calculating");
+			var n = polygon.length,
+				is_in = false,
+				x = point[0],
+				y = point[1],
+				x1,
+				x2,
+				y1,
+				y2;
+			// console.log("length n => " + n);
+			for (var i = 0; i < n - 1; ++i) {
+				x1 = polygon[i][0];
+				x2 = polygon[i + 1][0];
+				y1 = polygon[i][1];
+				y2 = polygon[i + 1][1];
+				// console.log("processing...");
+				if (y < y1 != y < y2 && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1) {
+					is_in = !is_in;
+				}
+			}
+			// console.log("result ... => " + is_in);
+			return is_in;
+		},
 		PolyTest() {
-			this.btnLoading = true;
-			let point = [];
-			this.getLocation()
-				.then((result) => {
-					point[0] = result.coords.longitude;
-					point[1] = result.coords.latitude;
-					// console.log(KrianPolygon[0]);
-					// console.log(this.ray_casting(point, PonokawanPolygon[0]));
-					const polygonTest = this.ray_casting(point, SinfPolygon[0]);
-					this.btnLoading = false;
-					if (polygonTest) {
-						this.btnText = "Inside";
-					} else {
-						this.btnText = "Outside";
-					}
-				})
-				.catch((e) => {
-					console.log(e);
-					this.btnLoading = false;
-					this.btnText = "Result Error";
-				});
+			return new Promise((resolve, reject) => {
+				this.btnLoading = true;
+				let point = [];
+				this.getLocation()
+					.then((result) => {
+						point[0] = result.coords.longitude;
+						point[1] = result.coords.latitude;
+
+						// begin test
+						const polygonTest = this.ray_casting(point, MojosantrenPolygon[0]);
+						// console.log(polygonTest);
+						resolve(polygonTest);
+					})
+					.catch((e) => {
+						console.log(e);
+						reject("error");
+					});
+			});
 		},
-		PolyTest2() {
-			this.btnLoading2 = true;
-			// this.platform= ''
-			let point = [];
-			this.getLocation()
-				.then((result) => {
-					point[0] = result.coords.longitude;
-					point[1] = result.coords.latitude;
-					// console.log(KrianPolygon[0]);
-					// console.log(this.ray_casting(point, PonokawanPolygon[0]));
-					const polygonTest = this.ray_casting(point, UinsaPolygon[0]);
-					this.btnLoading2 = false;
-					if (polygonTest) {
-						this.btnText2 = "Inside";
-					} else {
-						this.btnText2 = "Outside";
-					}
-				})
-				.catch((e) => {
-					console.log(e);
-					this.btnLoading2 = false;
-					this.btnText2 = "Result Error";
-				});
-		},
+		// PolyTest2() {
+		// 	this.btnLoading2 = true;
+		// 	// this.platform= ''
+		// 	let point = [];
+		// 	this.getLocation()
+		// 		.then((result) => {
+		// 			point[0] = result.coords.longitude;
+		// 			point[1] = result.coords.latitude;
+		// 			// console.log(KrianPolygon[0]);
+		// 			// console.log(this.ray_casting(point, PonokawanPolygon[0]));
+
+		// 			// begin test
+		// 			const polygonTest = this.ray_casting(point, UinsaPolygon[0]);
+		// 			this.btnLoading2 = false;
+		// 			if (polygonTest) {
+		// 				this.btnText2 = "Inside";
+		// 			} else {
+		// 				this.btnText2 = "Outside";
+		// 			}
+		// 		})
+		// 		.catch((e) => {
+		// 			console.log(e);
+		// 			this.btnLoading2 = false;
+		// 			this.btnText2 = "Result Error";
+		// 		});
+		// },
 		notFocus() {
 			this.items = [];
 		},
@@ -258,11 +213,11 @@ export default {
 				// mojo
 				// center: [112.59022972070082, -7.404347711911719],
 				// ponokawan
-				// center: [112.59364659438573, -7.397667849535032],
+				center: [112.59364659438573, -7.397667849535032],
 				// uinsa
-				center: [112.73398445302192, -7.322578854199146],
+				// center: [112.73398445302192, -7.322578854199146],
 
-				zoom: 14,
+				zoom: 13,
 			});
 
 			// const marker2 = new mapboxgl.Marker({ color: "black", rotation: 45 })
@@ -281,7 +236,8 @@ export default {
 						geometry: {
 							type: "Polygon",
 							// These coordinates outline Maine.
-							coordinates: SinfPolygon,
+							// coordinates: PonokawanPolygon,
+							coordinates: MojosantrenPolygon,
 						},
 					},
 				});
@@ -349,43 +305,43 @@ export default {
 			// 	});
 			// });
 
-			this.maps.on("load", () => {
-				this.maps.addSource("Uinsa", {
-					type: "geojson",
-					data: {
-						type: "Feature",
-						geometry: {
-							type: "Polygon",
-							// These coordinates outline Maine.
-							coordinates: UinsaPolygon,
-						},
-					},
-				});
+			// this.maps.on("load", () => {
+			// 	this.maps.addSource("Uinsa", {
+			// 		type: "geojson",
+			// 		data: {
+			// 			type: "Feature",
+			// 			geometry: {
+			// 				type: "Polygon",
+			// 				// These coordinates outline Maine.
+			// 				coordinates: UinsaPolygon,
+			// 			},
+			// 		},
+			// 	});
 
-				// Add a new layer to visualize the polygon.
-				this.maps.addLayer({
-					id: "layerUinsa",
-					type: "fill",
-					source: "Uinsa", // reference the data source
-					layout: {},
-					paint: {
-						"fill-color": "#c3f170", // blue color fill
-						"fill-opacity": 0.5,
-					},
-				});
+			// 	// Add a new layer to visualize the polygon.
+			// 	this.maps.addLayer({
+			// 		id: "layerUinsa",
+			// 		type: "fill",
+			// 		source: "Uinsa", // reference the data source
+			// 		layout: {},
+			// 		paint: {
+			// 			"fill-color": "#c3f170", // blue color fill
+			// 			"fill-opacity": 0.5,
+			// 		},
+			// 	});
 
-				// Add a black outline around the polygon.
-				this.maps.addLayer({
-					id: "outline3",
-					type: "line",
-					source: "Uinsa",
-					layout: {},
-					paint: {
-						"line-color": "#97ea01",
-						"line-width": 1,
-					},
-				});
-			});
+			// 	// Add a black outline around the polygon.
+			// 	this.maps.addLayer({
+			// 		id: "outline3",
+			// 		type: "line",
+			// 		source: "Uinsa",
+			// 		layout: {},
+			// 		paint: {
+			// 			"line-color": "#97ea01",
+			// 			"line-width": 1,
+			// 		},
+			// 	});
+			// });
 
 			this.maps.addControl(
 				new mapboxgl.GeolocateControl({
@@ -449,7 +405,6 @@ export default {
 					.catch((e) => {
 						reject(e);
 					});
-				const platform = Capacitor.getPlatform();
 			});
 		},
 
@@ -482,18 +437,27 @@ export default {
 							LocationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY
 						).then(
 							(result) => {
-								console.log("Turn on location success !!");
+								console.log("get result LocationAccuracy");
 								console.log(result);
-								console.log("masuk 2.2");
 								this.getLocation()
 									.then((location) => {
 										console.log(location);
-										this.myCoord[0] = location.coords.longitude;
-										this.myCoord[1] = location.coords.latitude;
+										let newArraty = [];
+										newArraty[0] = location.coords.longitude;
+										newArraty[1] = location.coords.longitude;
+										this.myCoord = newArraty.slice();
+										resolve(newArraty);
 									})
 									.catch((e) => {
 										console.log(e);
 									});
+
+								// if (result.code === 1) {
+
+								// } else {
+								// 	alert("Something error.");
+								// 	reject("User doesnt turn on location.");
+								// }
 							},
 							(error) => {
 								console.log("Turn on location failed !!");
@@ -524,35 +488,47 @@ export default {
 
 		startChecking() {
 			const platform = Capacitor.getPlatform();
-			if (platform === "android" || platform === "ios") {
-				this.checkGPSPermission().then((result) => {
-					if (result.hasPermission) {
-						console.log("masuk 1");
-						this.askTurnOnGPS();
-					} else {
-						console.log("masuk 2");
-						this.askAllowAccessGPS().then((result) => {
-							if (result.hasPermission) {
-								console.log("masuk 2.1");
-								this.askTurnOnGPS();
-							} else {
-								alert("Yahh ga di izinin pak!!");
-							}
-						});
-					}
-				});
-			} else {
-				this.getLocation()
-					.then((location) => {
-						console.log(location.coords);
-						this.myCoord[0] = location.coords.longitude;
-						this.myCoord[1] = location.coords.latitude;
-						console.log(this.myCoord);
-					})
-					.catch((e) => {
-						console.log(e);
+			return new Promise((resolve, reject) => {
+				if (platform === "android" || platform === "ios") {
+					this.checkGPSPermission().then((result) => {
+						if (result.hasPermission) {
+							this.askTurnOnGPS()
+								.then((done) => {
+									resolve(true);
+								})
+								.catch((e) => {
+									reject(false);
+								});
+						} else {
+							console.log("masuk 2");
+							this.askAllowAccessGPS().then((result) => {
+								if (result.hasPermission) {
+									this.askTurnOnGPS()
+										.then((done) => {
+											resolve(true);
+										})
+										.catch((e) => {
+											reject(false);
+										});
+								} else {
+									alert("Yahh ga di izinin pak!!");
+								}
+							});
+						}
 					});
-			}
+				} else {
+					this.getLocation()
+						.then((location) => {
+							let newArraty = [];
+							newArraty[0] = location.coords.longitude;
+							newArraty[1] = location.coords.longitude;
+							this.myCoord = newArraty.slice();
+						})
+						.catch((e) => {
+							console.log(e);
+						});
+				}
+			});
 		},
 	},
 };

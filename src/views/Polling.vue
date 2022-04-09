@@ -36,6 +36,7 @@
 								class="text-center"
 								:key="`${i}-steps`"
 							>
+								<!-- step device chek -->
 								<div v-if="step.steppers == 'device'">
 									<div
 										class="d-flex align-center justify-center"
@@ -45,45 +46,112 @@
 											:width="3"
 											color="primary"
 											indeterminate
-											v-if="deviceHasPolling === null"
+											v-if="
+												deviceHasPolling === null && error_CheckDevice === false
+											"
 										></v-progress-circular>
-										<div v-if="deviceHasPolling === true">
+										<div
+											v-if="
+												deviceHasPolling === true && error_CheckDevice === false
+											"
+										>
 											<v-icon large>mdi-close-circle-outline</v-icon>
 											Your device already submitted an answer
 										</div>
-										<div v-if="deviceHasPolling === false">
+										<div
+											v-if="
+												deviceHasPolling === false &&
+												error_CheckDevice === false
+											"
+										>
 											<v-icon large>mdi-check-circle-outline</v-icon>
 											Your device is allowed
 										</div>
+										<div v-if="error_CheckDevice">
+											<v-icon large>mdi-alert-circleoutline</v-icon>
+											Connection error, please check your internet.
+										</div>
 									</div>
-									<div v-if="deviceHasPolling === null">Checking your device-id</div>
-									<v-btn v-if="deviceHasPolling === true" outlined color="primary" @click="navigation_back">
+									<div
+										v-if="
+											deviceHasPolling === null && error_CheckDevice === false
+										"
+									>
+										Checking your device-id
+									</div>
+									<v-btn
+										v-if="
+											deviceHasPolling === true && error_CheckDevice === false
+										"
+										outlined
+										color="primary"
+										@click="navigation_back"
+									>
 										Back
 									</v-btn>
-									<v-btn v-if="deviceHasPolling === false" outlined color="primary" @click="e1 = 2">
+									<v-btn
+										v-if="
+											deviceHasPolling === false && error_CheckDevice === false
+										"
+										outlined
+										color="primary"
+										@click="e1 = 2"
+									>
 										Next
 									</v-btn>
-									<v-btn small class="mt-4" color="primary" text
+									<v-btn v-if="error_CheckDevice" outlined color="primary">
+										Back
+									</v-btn>
+									<v-btn
+										v-if="!error_CheckDevice"
+										small
+										class="mt-4"
+										color="primary"
+										text
 										><u>See Why ? {{ deviceId }}</u></v-btn
 									>
 								</div>
+								<!-- end step device chek -->
 
+								<!-- step area chek -->
 								<div v-if="step.steppers == 'area'">
 									<div
 										class="d-flex align-center justify-center"
 										style="height: 200px"
 									>
-										<v-progress-circular
-											:width="3"
-											color="primary"
-											indeterminate
-										></v-progress-circular>
+										<maps v-on:checkArea="checkArea" :checkBtn="checkBtn" />
 									</div>
-									<div>Checking your device-id</div>
-									<v-btn @click="e1 = 2" small class="mt-4" color="primary" text
+									<div class="mt-4" v-if="deviceArea === null">
+										Checking your area...
+									</div>
+									<div class="mt-4" v-if="deviceArea">
+										You are in allowed location
+									</div>
+									<div class="mt-4" v-if="!deviceArea">
+										Your location is not allowed
+									</div>
+
+									<div v-if="!deviceArea" class="d-flex justify-space-around">
+										<v-btn
+											outlined
+											class="mt-2"
+											color="primary"
+											@click="navigation_back"
+										>
+											Back
+										</v-btn>
+										<v-btn outlined class="mt-2" color="info" :loading="checkBtn" @click="checkAreaAgain">
+											Check Again
+										</v-btn>
+									</div>
+
+									<v-btn @click="e1 = 2" small class="mt-2" color="primary" text
 										><u>See Why ? {{ deviceId }}</u></v-btn
 									>
 								</div>
+								<!-- end step area chek -->
+
+								<!-- step others req -->
 								<div v-if="step.steppers == 'others'">
 									<div
 										class="d-flex align-center justify-center"
@@ -100,6 +168,7 @@
 										><u>See Why ? {{ deviceId }}</u></v-btn
 									>
 								</div>
+								<!-- end step others req -->
 							</v-stepper-content>
 						</template>
 					</v-stepper-items>
@@ -141,8 +210,12 @@
 
 <script>
 import { Device } from "@capacitor/device";
+import Maps from "./Maps.vue";
 
 export default {
+	components: {
+		Maps,
+	},
 	data() {
 		return {
 			polling_params: "",
@@ -156,6 +229,9 @@ export default {
 			polling: null,
 			deviceHasPolling: null,
 			deviceId: null,
+			deviceArea: null,
+			error_CheckDevice: false,
+			checkBtn: false,
 		};
 	},
 	mounted() {
@@ -166,6 +242,14 @@ export default {
 		this.getPolling();
 	},
 	methods: {
+		checkArea(value) {
+			this.checkBtn = false
+			this.deviceArea = value;
+			console.log("cek area  result device => " + value);
+		},
+		checkAreaAgain() {
+			this.checkBtn = true;
+		},
 		navigation_back() {
 			this.$router.push({ name: "home" });
 		},
@@ -186,7 +270,7 @@ export default {
 							.then((res) => {
 								this.checkIsDeviceHasPol(res.data.data).then((hasPoll) => {
 									setTimeout(() => {
-										console.log(hasPoll);
+										// console.log(hasPoll);
 										if (hasPoll) {
 											this.deviceHasPolling = true;
 										} else {
@@ -195,7 +279,9 @@ export default {
 									}, 1000);
 								});
 							})
-							.catch((e) => {});
+							.catch((e) => {
+								this.error_CheckDevice = true;
+							});
 					});
 				})
 				.catch((e) => {
@@ -230,7 +316,7 @@ export default {
 							result = false;
 						}
 					});
-					resolve(result)
+					resolve(result);
 				});
 			});
 		},
