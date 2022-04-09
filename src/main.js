@@ -20,8 +20,8 @@ window.toast = izi_Toast
 
 Vue.config.productionTip = false
 
-// const __BASE_URL_SERVER = 'http://192.168.1.3:8888/';
-const __BASE_URL_SERVER = 'https://poll-polling.test/';
+const __BASE_URL_SERVER = 'http://192.168.1.3:8888/';
+// const __BASE_URL_SERVER = 'https://poll-polling.test/';
 
 const __API_PREFIX = 'api'
 // window.axios = AXIOS;
