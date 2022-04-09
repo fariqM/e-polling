@@ -6,9 +6,12 @@ import vuetify from './plugins/vuetify'
 import './scss/var.scss'
 import '@mdi/font/css/materialdesignicons.css'
 import AXIOS from "axios";
+
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { defineCustomElements } from '@ionic/pwa-elements/loader';
+import { SplashScreen } from '@capacitor/splash-screen';
+
 import izi_Toast from 'izitoast'
 import "./plugins/iziToast.min.css"
 
@@ -32,13 +35,15 @@ window.__BASE_URL__ = __BASE_URL_SERVER
 
 
 
+SplashScreen.hide().then(() => {
+  new Vue({
+    router,
+    store,
+    vuetify,
+    render: h => h(Main)
+  }).$mount('#app')
+})
 
-new Vue({
-  router,
-  store,
-  vuetify,
-  render: h => h(Main)
-}).$mount('#app')
 
 defineCustomElements(window);
 
