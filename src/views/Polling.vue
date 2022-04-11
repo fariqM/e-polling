@@ -134,7 +134,7 @@
 								<!-- step others req -->
 								<div v-if="step.steppers == 'others'">
 									<div class="c-subheader mb-2">Other Requirements</div>
-									<div class="other-forms">
+									<div class="other-forms mb-2">
 										<v-text-field
 											placeholder="Name*"
 											dense
@@ -142,6 +142,8 @@
 											solo-inverted
 											style="border-radius: 0px"
 											v-if="polling.req_name === 1"
+											v-model="other_forms.name"
+											:error-messages="formErrors.name"
 										></v-text-field>
 										<v-text-field
 											placeholder="Email*"
@@ -150,6 +152,8 @@
 											solo-inverted
 											style="border-radius: 0px"
 											v-if="polling.req_email === 1"
+											v-model="other_forms.email"
+											:error-messages="formErrors.email"
 										></v-text-field>
 										<v-text-field
 											placeholder="Poll Password*"
@@ -158,12 +162,13 @@
 											solo-inverted
 											style="border-radius: 0px"
 											v-if="polling.with_password === 1"
+											v-model="other_forms.password"
+											:error-messages="formErrors.password"
 										></v-text-field>
 									</div>
-									<!-- <div>Checking your device-id</div>
-									<v-btn @click="e1 = 2" small class="mt-4" color="primary" text
-										><u>See Why ? {{ deviceId }}</u></v-btn
-									> -->
+									<v-btn outlined color="primary" @click="nextStep(true)">
+										Next
+									</v-btn>
 								</div>
 								<!-- end step others req -->
 							</v-stepper-content>
@@ -231,6 +236,16 @@ export default {
 			error_Maps: false,
 			errors: {},
 			checkBtn: false,
+			other_forms: {
+				name: "",
+				email: "",
+				password: "",
+			},
+			formErrors: {
+				name: [],
+				email: [],
+				password: [],
+			},
 		};
 	},
 	mounted() {
@@ -241,9 +256,81 @@ export default {
 		this.getPolling();
 	},
 	methods: {
-		nextStep() {
+		checkOtherForms() {
+			const isEmail = String(this.other_forms.email)
+				.toLowerCase()
+				.match(
+					/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+				);
+			if (this.polling.req_email === 1) {
+				if (this.other_forms.email == "") {
+					this.formErrors.email = ["The email field is required"];
+					return false;
+				} else if (!isEmail) {
+					this.formErrors.email = ["Must be an email"];
+					return false;
+				} else {
+					return true;
+				}
+			}
+
+			if (this.polling.req_name === 1) {
+				if (this.other_forms.name == "") {
+					this.formErrors.email = ["The name field is required"];
+					return false;
+				} else {
+					return true;
+				}
+			}
+		},
+		nextStep(other_forms = false) {
 			if (this.e1 !== this.totalSteppers.length) {
 				this.e1 += 1;
+			} else {
+				if (other_forms) {
+					this.resetErrors();
+					if (this.polling.with_password) {
+						axios
+							.post(
+								`p/verify-password/${this.polling_params}`,
+								this.other_forms
+							)
+							.then((response) => {
+								if (this.checkOtherForms()) {
+									this.totalSteppers = [];
+								}
+							})
+							.catch((e) => {
+								if (e.response) {
+									console.log(e.response);
+									if (e.response.status === 422) {
+										Object.assign(this.formErrors, e.response.data.errors);
+									} else if (e.response.status === 403) {
+										Object.assign(this.formErrors, e.response.data.errors);
+									} else {
+										this.formErrors.password = "Something went wrong.";
+										toast.error({
+											title: "Something went wrong",
+											message: "Something went wrong, please try again later.",
+											position: "topCenter",
+											timeout: 2500,
+											// ballon:true,
+											transitionInMobile: "fadeInRight",
+											transitionOutMobile: "fadeOutRight",
+											displayMode: 2,
+										});
+									}
+								}
+							});
+					} else {
+						if (this.checkOtherForms()) {
+							this.totalSteppers = [];
+						}
+					}
+				} else {
+					this.totalSteppers = [];
+					console.log("gausa");
+				}
 			}
 		},
 		checkArea(value) {
@@ -272,7 +359,6 @@ export default {
 					this.polling = response.data.data;
 					this.pageReady = true;
 					this.checkReq();
-					console.log(response);
 					// console.log(this.totalSteppers);
 					if (this.polling.with_device_res === 1) {
 						this.checkDevice().then((result) => {
@@ -335,6 +421,11 @@ export default {
 					resolve(result);
 				});
 			});
+		},
+		resetErrors() {
+			this.formErrors.password = [];
+			this.formErrors.name = [];
+			this.formErrors.email = [];
 		},
 		checkReq() {
 			if (this.polling.with_device_res === 1) {
