@@ -3,6 +3,53 @@
 		<div style="width: 100%">
 			<div style="height: 200px; width: 100%" id="map"></div>
 		</div>
+		<div v-if="!error_Maps">
+			<div class="mt-4" v-if="deviceArea === null">Checking your area...</div>
+			<div v-if="!insideLocation">
+				<div class="mt-4" v-if="!loading">Your location is not allowed</div>
+				<div class="d-flex justify-space-around">
+					<v-btn outlined class="mt-2" color="primary" v-if="!loading"> Back </v-btn>
+					<v-btn
+						outlined
+						class="mt-2"
+						color="primary"
+						@click="recasting_area()"
+						:loading="loading"
+					>
+						<v-icon>mdi-reload</v-icon>Retry
+					</v-btn>
+				</div>
+			</div>
+			<div v-if="insideLocation" class="mt-4">
+				<div class="mt-4">You are in allowed location</div>
+				<v-btn outlined class="mt-2" color="info" @click="$emit('nextStep')"> Next </v-btn>
+			</div>
+		</div>
+		<div v-if="error_Maps" class="mt-2">
+			<div>
+				<v-alert
+					dense
+					type="error"
+					color="error"
+					tile
+					style="font-size: 0.7rem !important"
+					dismissible
+					colored-border
+					border="left"
+					transition="scale-transition"
+				>
+					{{ errors.user_msg }}
+				</v-alert>
+			</div>
+			<v-btn
+				outlined
+				color="primary"
+				@click="recasting_area()"
+				:loading="loading"
+			>
+				<v-icon>mdi-reload</v-icon>Retry
+			</v-btn>
+		</div>
 	</div>
 </template>
 
@@ -24,10 +71,6 @@ import MojosantrenPolygon from "../data/mojosantren";
 // import SinfPolygon from "../data/sinf";
 
 export default {
-	props: {
-		checkBtn: Boolean,
-	},
-
 	data() {
 		return {
 			platform: "",
@@ -41,17 +84,17 @@ export default {
 			items: [],
 			search: null,
 			select: null,
-			states: [],
 			geo_coords: {},
 			val: "",
 			teks: "",
 			maps: {},
 			findLocMarker: null,
-			btnText: "Testing sinf",
-			btnText2: "Testing uin",
-			btnLoading: false,
-			btnLoading2: false,
 			myCoord: [],
+			error_Maps: false,
+			insideLocation: false,
+			errors: {},
+			deviceArea: null,
+			checkBtn: false,
 		};
 	},
 	watch: {
@@ -60,14 +103,7 @@ export default {
 		},
 		checkBtn(newVal) {
 			if (newVal) {
-				this.PolyTest()
-					.then((result) => {
-						this.$emit("checkArea", result);
-						console.log(result);
-					})
-					.catch((e) => {
-						console.log(e);
-					});
+				this.recasting_area();
 			}
 		},
 	},
@@ -75,35 +111,19 @@ export default {
 	mounted() {
 		this.platform = window.platform;
 		// console.log(MojosantrenPolygon);
-
 		this.setMap();
-		this.startChecking().then(() => {
-			this.PolyTest()
-				.then((result) => {
-					this.$emit("checkArea", result);
-					console.log(result);
-				})
-				.catch((e) => {
-					alert("Something went wrong when trying to get location.");
-					this.callbackError({
-						code: 9,
-						msg: "Unknown Error",
-						user_msg:
-							"Please go to home page and retry to enter polling address",
-						on: "askAllowAccessGPS",
-					});
-					console.log(e);
-				});
-		});
-
+		this.recasting_area();
 		// console.log(this.items.length);
 		this.items2.unshift({ header: "Group 1" });
 		this.items2.unshift({ header: "Group 2" });
 	},
 
 	methods: {
-		callbackError(error) {
-			this.$emit("mapsError", error);
+		callbackMapsError(value) {
+			this.error_Maps = true;
+			this.errors = value;
+			this.loading = false;
+			// this.$emit("mapsError", value);
 		},
 		moveToSomewhere(value) {
 			// console.log(this.findLocMarker);
@@ -120,16 +140,20 @@ export default {
 			});
 		},
 		recasting_area() {
+			this.loading = true;
+			this.error_Maps = false;
 			this.startChecking().then(() => {
 				this.PolyTest()
 					.then((result) => {
-						this.$emit("checkArea", result);
-						console.log(result);
+						this.loading = false;
+						this.deviceArea = "updated";
+						this.insideLocation = result;
 					})
 					.catch((e) => {
+						this.loading = false;
 						console.log(e);
 						alert("Something went wrong when trying to get location.");
-						this.callbackError({
+						this.callbackMapsError({
 							code: 9,
 							msg: "Unknown Error",
 							user_msg:
@@ -164,7 +188,7 @@ export default {
 			if (is_in) {
 			} else {
 				alert("Please go to the appropriate location.");
-				this.callbackError({
+				this.callbackMapsError({
 					code: 3,
 					msg: "user is outside location.",
 					user_msg: "Please go to the appropriate location.",
@@ -175,7 +199,6 @@ export default {
 		},
 		PolyTest() {
 			return new Promise((resolve, reject) => {
-				this.btnLoading = true;
 				let point = [];
 				this.getLocation()
 					.then((result) => {
@@ -198,15 +221,12 @@ export default {
 		},
 		querySelections(v) {
 			console.log(v);
-			this.loading = true;
-
 			axios
 				.get(
 					`https://api.mapbox.com/geocoding/v5/mapbox.places/${v}.json?country=id&proximity=ip&types=place%2Cpostcode%2Caddress%2Ccountry%2Cregion%2Cdistrict%2Clocality%2Cneighborhood%2Cpoi&access_token=pk.eyJ1IjoiYm9yZXFvZnUiLCJhIjoiY2wwNnM5dzE5MDU3czNjbHZmbGhsbGZ2MCJ9.nNAbUcoqk9PpyZS8nz0T_A`
 				)
 				.then((response) => {
 					this.items = response.data.features;
-					this.loading = false;
 				});
 		},
 		setMap() {
@@ -390,6 +410,15 @@ export default {
 				)
 					.then(
 						(result) => {
+							if (!result.hasPermission) {
+								alert("Please allow the app to access the location.");
+								this.callbackMapsError({
+									code: 1,
+									msg: "App not allowed to access location",
+									user_msg: "Please turn on location permission.",
+									on: "askAllowAccessGPS",
+								});
+							}
 							resolve(result);
 						},
 						(error) => {
@@ -430,7 +459,7 @@ export default {
 									});
 							},
 							(error) => {
-								this.callbackError({
+								this.callbackMapsError({
 									code: 2,
 									msg: "user does not allow app to turn on location",
 									user_msg: "Please turn on location.",
@@ -442,8 +471,9 @@ export default {
 							}
 						);
 					} else {
+						console.log("masuk sini");
 						alert("Please allow the app to access the location.");
-						this.callbackError({
+						this.callbackMapsError({
 							code: 1,
 							msg: "App not allowed to access location",
 							user_msg: "Please turn on location permission.",
@@ -468,7 +498,7 @@ export default {
 					.catch((error) => {
 						if (this.platform === "android" || this.platform === "ios") {
 							alert("Something went wrong when trying to get location.");
-							this.callbackError({
+							this.callbackMapsError({
 								code: 9,
 								msg: "Unknown Error",
 								user_msg:
@@ -477,7 +507,7 @@ export default {
 							});
 						} else {
 							alert("Please turn on location.");
-							this.callbackError({
+							this.callbackMapsError({
 								code: 2,
 								msg: "user does not allow app to turn on location",
 								user_msg: "Please turn on location.",
@@ -519,19 +549,11 @@ export default {
 											.catch((e) => {
 												reject(false);
 											});
-									} else {
-										this.callbackError({
-											code: 1,
-											msg: "App not allowed to access location",
-											user_msg: "Please turn on location permission.",
-											on: "askAllowAccessGPS",
-										});
-										alert("Please allow the app to access the location.");
 									}
 								})
-								.catch(() => {
+								.catch((e) => {
 									alert("Something went wrong when trying to get location.");
-									this.callbackError({
+									this.callbackMapsError({
 										code: 9,
 										msg: "Unknown Error",
 										user_msg:

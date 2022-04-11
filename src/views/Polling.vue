@@ -13,14 +13,15 @@
 		<v-main style="width: 100%">
 			<div v-if="pageReady">
 				<v-stepper v-model="e1" v-if="!reqReady && totalSteppers.length > 0">
-					<v-stepper-header>
+					<v-stepper-header
+						:class="{ 'd-flex justify-center': totalSteppers.length === 1 }"
+					>
 						<template v-for="(step, i) in totalSteppers">
 							<v-stepper-step
 								:complete="e1 > i + 1"
 								:step="i + 1"
 								:key="`${i}-steps`"
 							>
-								Name of step 1
 							</v-stepper-step>
 							<v-divider
 								:key="`${i}-step`"
@@ -38,6 +39,7 @@
 							>
 								<!-- step device chek -->
 								<div v-if="step.steppers == 'device'">
+									<div class="c-subheader mb-2">Device Checking</div>
 									<div
 										class="d-flex align-center justify-center"
 										style="height: 200px"
@@ -95,7 +97,7 @@
 										"
 										outlined
 										color="primary"
-										@click="e1 = 2"
+										@click="nextStep()"
 									>
 										Next
 									</v-btn>
@@ -115,68 +117,53 @@
 
 								<!-- step area chek -->
 								<div v-if="step.steppers == 'area'">
+									<div class="c-subheader mb-2">Location Checking</div>
 									<div
 										class="d-flex align-center justify-center"
-										style="height: 200px"
+										style="max-height: 300px"
 									>
-										<maps
-											v-on:checkArea="checkArea"
-											v-on:mapsError="mapsError"
-											:checkBtn="checkBtn"
-										/>
-									</div>
-									<div class="mt-4" v-if="deviceArea === null">
-										Checking your area...
-									</div>
-									<div class="mt-4" v-if="deviceArea">
-										You are in allowed location
-									</div>
-									<div class="mt-4" v-if="!deviceArea">
-										Your location is not allowed
+										<maps v-on:nextStep="nextStep()" />
 									</div>
 
-									<div v-if="!deviceArea" class="d-flex justify-space-around">
-										<v-btn
-											outlined
-											class="mt-2"
-											color="primary"
-											@click="navigation_back"
-										>
-											Back
-										</v-btn>
-										<v-btn
-											outlined
-											class="mt-2"
-											color="info"
-											:loading="checkBtn"
-											@click="checkAreaAgain"
-										>
-											Check Again
-										</v-btn>
-									</div>
-
-									<v-btn @click="e1 = 2" small class="mt-2" color="primary" text
-										><u>See Why ? {{ deviceId }}</u></v-btn
+									<v-btn small class="mt-3" color="primary" text
+										><u>Help</u></v-btn
 									>
 								</div>
 								<!-- end step area chek -->
 
 								<!-- step others req -->
 								<div v-if="step.steppers == 'others'">
-									<div
-										class="d-flex align-center justify-center"
-										style="height: 200px"
-									>
-										<v-progress-circular
-											:width="3"
-											color="primary"
-											indeterminate
-										></v-progress-circular>
+									<div class="c-subheader mb-2">Other Requirements</div>
+									<div class="other-forms">
+										<v-text-field
+											placeholder="Name*"
+											dense
+											hide-details="auto"
+											solo-inverted
+											style="border-radius: 0px"
+											v-if="polling.req_name === 1"
+										></v-text-field>
+										<v-text-field
+											placeholder="Email*"
+											dense
+											hide-details="auto"
+											solo-inverted
+											style="border-radius: 0px"
+											v-if="polling.req_email === 1"
+										></v-text-field>
+										<v-text-field
+											placeholder="Poll Password*"
+											dense
+											hide-details="auto"
+											solo-inverted
+											style="border-radius: 0px"
+											v-if="polling.with_password === 1"
+										></v-text-field>
 									</div>
-									<div>Checking your device-id</div>
+									<!-- <div>Checking your device-id</div>
 									<v-btn @click="e1 = 2" small class="mt-4" color="primary" text
 										><u>See Why ? {{ deviceId }}</u></v-btn
-									>
+									> -->
 								</div>
 								<!-- end step others req -->
 							</v-stepper-content>
@@ -242,6 +229,7 @@ export default {
 			deviceArea: null,
 			error_CheckDevice: false,
 			error_Maps: false,
+			errors: {},
 			checkBtn: false,
 		};
 	},
@@ -253,6 +241,11 @@ export default {
 		this.getPolling();
 	},
 	methods: {
+		nextStep() {
+			if (this.e1 !== this.totalSteppers.length) {
+				this.e1 += 1;
+			}
+		},
 		checkArea(value) {
 			this.checkBtn = false;
 			this.deviceArea = value;
@@ -260,44 +253,50 @@ export default {
 		},
 		checkAreaAgain() {
 			this.checkBtn = true;
+			this.mapsError = false;
 		},
-		mapsError(errorCode) {
+		mapsError(errors) {
 			this.mapsError = true;
-			console.log("maps error. code => " + JSON.stringify(errorCode));
+			this.errors = errors;
+			console.log("maps error. code => " + JSON.stringify(errors));
 		},
 		navigation_back() {
 			this.$router.push({ name: "home" });
 		},
 		getPolling() {
 			// setTimeout(() => {}, 1000);
+			console.log("fetching polling");
 			axios
 				.get(`p/${this.polling_params}`)
 				.then((response) => {
 					this.polling = response.data.data;
 					this.pageReady = true;
 					this.checkReq();
-					// console.log(response);
+					console.log(response);
 					// console.log(this.totalSteppers);
-					this.checkDevice().then((result) => {
-						this.deviceId = result.uuid;
-						axios
-							.get(`p/${this.polling_params}/${result.uuid}`)
-							.then((res) => {
-								this.checkIsDeviceHasPol(res.data.data).then((hasPoll) => {
-									setTimeout(() => {
-										// console.log(hasPoll);
-										if (hasPoll) {
-											this.deviceHasPolling = true;
-										} else {
-											this.deviceHasPolling = false;
-										}
-									}, 1000);
+					if (this.polling.with_device_res === 1) {
+						this.checkDevice().then((result) => {
+							this.deviceId = result.uuid;
+							axios
+								.get(`p/${this.polling_params}/${result.uuid}`)
+								.then((res) => {
+									console.log("checking device id");
+									this.checkIsDeviceHasPol(res.data.data).then((hasPoll) => {
+										setTimeout(() => {
+											// console.log(hasPoll);
+											if (hasPoll) {
+												this.deviceHasPolling = true;
+											} else {
+												this.deviceHasPolling = false;
+											}
+										}, 1000);
+									});
+								})
+								.catch((e) => {
+									this.error_CheckDevice = true;
 								});
-							})
-							.catch((e) => {
-								this.error_CheckDevice = true;
-							});
-					});
+						});
+					}
 				})
 				.catch((e) => {
 					console.log(e.response);
@@ -365,4 +364,10 @@ export default {
 </script>
 
 <style>
+.other-forms {
+	display: grid;
+	max-height: 100%;
+	grid-template-columns: auto;
+	gap: 0.7rem;
+}
 </style>
