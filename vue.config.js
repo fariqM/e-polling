@@ -16,11 +16,12 @@ module.exports = defineConfig({
   transpileDependencies: [
     'vuetify'
   ],
-  // devServer: {
-  //   https: {
-  //     key: fs.readFileSync('./cert/laragon.key'),
-  //     cert: fs.readFileSync('./cert/laragon.crt'),
-  //   },
-  //   // public: 'https://localhost:8080/'
-  // }
+  devServer: {
+    https: {
+      key: fs.readFileSync('./cert/laragon.key'),
+      cert: fs.readFileSync('./cert/laragon.crt'),
+    },
+    liveReload: true,
+    // public: 'https://localhost:8080/'
+  }
 })

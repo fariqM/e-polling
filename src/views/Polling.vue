@@ -119,7 +119,11 @@
 										class="d-flex align-center justify-center"
 										style="height: 200px"
 									>
-										<maps v-on:checkArea="checkArea" :checkBtn="checkBtn" />
+										<maps
+											v-on:checkArea="checkArea"
+											v-on:mapsError="mapsError"
+											:checkBtn="checkBtn"
+										/>
 									</div>
 									<div class="mt-4" v-if="deviceArea === null">
 										Checking your area...
@@ -140,7 +144,13 @@
 										>
 											Back
 										</v-btn>
-										<v-btn outlined class="mt-2" color="info" :loading="checkBtn" @click="checkAreaAgain">
+										<v-btn
+											outlined
+											class="mt-2"
+											color="info"
+											:loading="checkBtn"
+											@click="checkAreaAgain"
+										>
 											Check Again
 										</v-btn>
 									</div>
@@ -231,6 +241,7 @@ export default {
 			deviceId: null,
 			deviceArea: null,
 			error_CheckDevice: false,
+			error_Maps: false,
 			checkBtn: false,
 		};
 	},
@@ -243,12 +254,16 @@ export default {
 	},
 	methods: {
 		checkArea(value) {
-			this.checkBtn = false
+			this.checkBtn = false;
 			this.deviceArea = value;
 			console.log("cek area  result device => " + value);
 		},
 		checkAreaAgain() {
 			this.checkBtn = true;
+		},
+		mapsError(errorCode) {
+			this.mapsError = true;
+			console.log("maps error. code => " + JSON.stringify(errorCode));
 		},
 		navigation_back() {
 			this.$router.push({ name: "home" });
@@ -285,6 +300,8 @@ export default {
 					});
 				})
 				.catch((e) => {
+					console.log(e.response);
+					console.log(e);
 					if (e.response) {
 						this.notFound = true;
 					}

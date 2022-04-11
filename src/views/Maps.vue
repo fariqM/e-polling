@@ -7,7 +7,6 @@
 </template>
 
 <script>
-import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@awesome-cordova-plugins/geolocation";
 import { AndroidPermissions } from "@awesome-cordova-plugins/android-permissions";
 import { LocationAccuracy } from "@awesome-cordova-plugins/location-accuracy";
@@ -55,14 +54,6 @@ export default {
 			myCoord: [],
 		};
 	},
-
-	// beforeRouteEnter(to, from, next) {
-	// 	next((vm) => {
-	// 		vm.startChecking();
-	// 		next();
-	// 		// access to component instance via `vm`
-	// 	});
-	// },
 	watch: {
 		search(val) {
 			val && val !== this.select && this.querySelections(val);
@@ -82,7 +73,7 @@ export default {
 	},
 
 	mounted() {
-		this.platform = Capacitor.getPlatform();
+		this.platform = window.platform;
 		// console.log(MojosantrenPolygon);
 
 		this.setMap();
@@ -93,6 +84,14 @@ export default {
 					console.log(result);
 				})
 				.catch((e) => {
+					alert("Something went wrong when trying to get location.");
+					this.callbackError({
+						code: 9,
+						msg: "Unknown Error",
+						user_msg:
+							"Please go to home page and retry to enter polling address",
+						on: "askAllowAccessGPS",
+					});
 					console.log(e);
 				});
 		});
@@ -103,6 +102,9 @@ export default {
 	},
 
 	methods: {
+		callbackError(error) {
+			this.$emit("mapsError", error);
+		},
 		moveToSomewhere(value) {
 			// console.log(this.findLocMarker);
 			if (this.findLocMarker !== null) {
@@ -115,6 +117,26 @@ export default {
 				center: value.center,
 				zoom: 15,
 				essential: true, // this animation is considered essential with respect to prefers-reduced-motion
+			});
+		},
+		recasting_area() {
+			this.startChecking().then(() => {
+				this.PolyTest()
+					.then((result) => {
+						this.$emit("checkArea", result);
+						console.log(result);
+					})
+					.catch((e) => {
+						console.log(e);
+						alert("Something went wrong when trying to get location.");
+						this.callbackError({
+							code: 9,
+							msg: "Unknown Error",
+							user_msg:
+								"Please go to home page and retry to enter polling address",
+							on: "askAllowAccessGPS",
+						});
+					});
 			});
 		},
 		ray_casting(point, polygon) {
@@ -139,6 +161,16 @@ export default {
 				}
 			}
 			// console.log("result ... => " + is_in);
+			if (is_in) {
+			} else {
+				alert("Please go to the appropriate location.");
+				this.callbackError({
+					code: 3,
+					msg: "user is outside location.",
+					user_msg: "Please go to the appropriate location.",
+					on: "ray_casting",
+				});
+			}
 			return is_in;
 		},
 		PolyTest() {
@@ -161,32 +193,6 @@ export default {
 					});
 			});
 		},
-		// PolyTest2() {
-		// 	this.btnLoading2 = true;
-		// 	// this.platform= ''
-		// 	let point = [];
-		// 	this.getLocation()
-		// 		.then((result) => {
-		// 			point[0] = result.coords.longitude;
-		// 			point[1] = result.coords.latitude;
-		// 			// console.log(KrianPolygon[0]);
-		// 			// console.log(this.ray_casting(point, PonokawanPolygon[0]));
-
-		// 			// begin test
-		// 			const polygonTest = this.ray_casting(point, UinsaPolygon[0]);
-		// 			this.btnLoading2 = false;
-		// 			if (polygonTest) {
-		// 				this.btnText2 = "Inside";
-		// 			} else {
-		// 				this.btnText2 = "Outside";
-		// 			}
-		// 		})
-		// 		.catch((e) => {
-		// 			console.log(e);
-		// 			this.btnLoading2 = false;
-		// 			this.btnText2 = "Result Error";
-		// 		});
-		// },
 		notFocus() {
 			this.items = [];
 		},
@@ -363,37 +369,6 @@ export default {
 			// );
 		},
 
-		// check permission for mobile/web and ask to turn on if its mobile app
-		checkGeo() {
-			this.getLocation()
-				.then((location) => {
-					console.log(location.coords);
-					this.text = JSON.stringify({
-						latitude: location.coords.latitude,
-						logintude: location.coords.logintude,
-						accuracy: location.coords.accuracy,
-					});
-				})
-				.catch((e) => {
-					console.log(e);
-				});
-		},
-
-		reverseGeoloc() {
-			this.getLocation()
-				.then((location) => {
-					console.log(location.coords);
-					this.text = JSON.stringify({
-						latitude: location.coords.latitude,
-						logintude: location.coords.logintude,
-						accuracy: location.coords.accuracy,
-					});
-				})
-				.catch((e) => {
-					console.log(e);
-				});
-		},
-
 		checkGPSPermission() {
 			return new Promise((resolve, reject) => {
 				AndroidPermissions.checkPermission(
@@ -429,15 +404,17 @@ export default {
 
 		askTurnOnGPS() {
 			return new Promise((resolve, reject) => {
+				console.log("checkLocationPermission");
 				LocationAccuracy.canRequest().then((canRequest) => {
 					// check if user allowed application to access location
 					if (canRequest) {
 						// if true, ask user to turn on GPS if its off
+						console.log("askTurnOnGPS");
 						LocationAccuracy.request(
 							LocationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY
 						).then(
 							(result) => {
-								console.log("get result LocationAccuracy");
+								console.log("askTurnOnGPS -> result");
 								console.log(result);
 								this.getLocation()
 									.then((location) => {
@@ -451,21 +428,27 @@ export default {
 									.catch((e) => {
 										console.log(e);
 									});
-
-								// if (result.code === 1) {
-
-								// } else {
-								// 	alert("Something error.");
-								// 	reject("User doesnt turn on location.");
-								// }
 							},
 							(error) => {
+								this.callbackError({
+									code: 2,
+									msg: "user does not allow app to turn on location",
+									user_msg: "Please turn on location.",
+									on: "askTurnOnGPS",
+								});
 								console.log("Turn on location failed !!");
 								console.log(error);
-								alert("Yahh gamau nyalain lokasi pak!!");
+								alert("Please turn on location.");
 							}
 						);
 					} else {
+						alert("Please allow the app to access the location.");
+						this.callbackError({
+							code: 1,
+							msg: "App not allowed to access location",
+							user_msg: "Please turn on location permission.",
+							on: "askTurnOnGPS",
+						});
 						reject("User doesnt allow application to access location.");
 					}
 				});
@@ -473,24 +456,47 @@ export default {
 		},
 
 		getLocation() {
+			console.log("getGeolocation");
 			return new Promise((resolve, reject) => {
 				this.geo_coords = Geolocation.getCurrentPosition({
 					enableHighAccuracy: true,
 				})
 					.then((location) => {
+						console.log("getGeolocation -> resolved");
 						resolve(location);
 					})
 					.catch((error) => {
+						if (this.platform === "android" || this.platform === "ios") {
+							alert("Something went wrong when trying to get location.");
+							this.callbackError({
+								code: 9,
+								msg: "Unknown Error",
+								user_msg:
+									"Please go to home page and retry to enter polling address",
+								on: "getLocation",
+							});
+						} else {
+							alert("Please turn on location.");
+							this.callbackError({
+								code: 2,
+								msg: "user does not allow app to turn on location",
+								user_msg: "Please turn on location.",
+								on: "askTurnOnGPS",
+							});
+						}
+						console.log("getGeolocation -> reject");
 						reject(error);
 					});
 			});
 		},
 
 		startChecking() {
-			const platform = Capacitor.getPlatform();
 			return new Promise((resolve, reject) => {
-				if (platform === "android" || platform === "ios") {
+				if (this.platform === "android" || this.platform === "ios") {
+					console.log("checkGPSPermission");
 					this.checkGPSPermission().then((result) => {
+						console.log("checkGPSPermission -> result :");
+						console.log(result);
 						if (result.hasPermission) {
 							this.askTurnOnGPS()
 								.then((done) => {
@@ -500,20 +506,39 @@ export default {
 									reject(false);
 								});
 						} else {
-							console.log("masuk 2");
-							this.askAllowAccessGPS().then((result) => {
-								if (result.hasPermission) {
-									this.askTurnOnGPS()
-										.then((done) => {
-											resolve(true);
-										})
-										.catch((e) => {
-											reject(false);
+							console.log("askAllowAccessGPS");
+							this.askAllowAccessGPS()
+								.then((result) => {
+									console.log("askAllowAccessGPS -> result :");
+									console.log(result);
+									if (result.hasPermission) {
+										this.askTurnOnGPS()
+											.then((done) => {
+												resolve(true);
+											})
+											.catch((e) => {
+												reject(false);
+											});
+									} else {
+										this.callbackError({
+											code: 1,
+											msg: "App not allowed to access location",
+											user_msg: "Please turn on location permission.",
+											on: "askAllowAccessGPS",
 										});
-								} else {
-									alert("Yahh ga di izinin pak!!");
-								}
-							});
+										alert("Please allow the app to access the location.");
+									}
+								})
+								.catch(() => {
+									alert("Something went wrong when trying to get location.");
+									this.callbackError({
+										code: 9,
+										msg: "Unknown Error",
+										user_msg:
+											"Please go to home page and retry to enter polling address",
+										on: "askAllowAccessGPS",
+									});
+								});
 						}
 					});
 				} else {

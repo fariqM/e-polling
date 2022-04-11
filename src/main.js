@@ -23,13 +23,17 @@ window.toast = izi_Toast
 
 Vue.config.productionTip = false
 
-const __BASE_URL_SERVER = 'http://192.168.1.3:8888/';
+// const __BASE_URL_SERVER = 'http://192.168.1.3:8888/';
 // const __BASE_URL_SERVER = 'https://poll-polling.test/';
+// const __BASE_URL_SERVER = 'https://poll-polling.site/';
+const __BASE_URL_SERVER = 'https://302d-2001-448a-50e1-f245-e0b3-635e-6bd5-4b84.ngrok.io/';
+
 
 const __API_PREFIX = 'api'
 // window.axios = AXIOS;
 window.axios = AXIOS.create({
   baseURL: `${__BASE_URL_SERVER}${__API_PREFIX}`,
+  // headers: {'X-Requested-With': 'XMLHttpRequest'},
 });
 window.__BASE_URL__ = __BASE_URL_SERVER
 
