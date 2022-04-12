@@ -69,9 +69,6 @@
 												</v-row> </template
 										></v-img>
 									</v-avatar>
-									<v-avatar tile size="60" v-else>
-										<v-img :src="require('../../assets/no_img.png')" />
-									</v-avatar>
 								</div>
 							</div>
 						</v-card>

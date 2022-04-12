@@ -28,7 +28,7 @@
 				</div>
 			</div>
 			<div
-                v-if="pageReady"
+				v-if="pageReady"
 				style="max-height: calc(100vh - 55px); margin-top: 48px"
 				class="overflow-y-auto"
 			>
@@ -91,44 +91,44 @@
 					<v-divider class="ma-0" style="border-color: #f0f8ff59" />
 					<div
 						v-ripple
-						class="d-flex justify-space-between align-center my-2"
+						class=""
 						v-for="(answer, i) in polling.answers"
 						:key="i"
 					>
-						<div>
-							<div
-								class="answer-title"
-								v-if="answer.text !== null || answer.text !== ''"
-							>
-								{{ answer.text }}
-							</div>
-							<div
-								class="answer-title"
-								v-if="answer.text === null || answer.text === ''"
-							>
-								(No-Text)
-							</div>
-							<div class="d-flex">
-								<div>{{ answer.voters.length }} votes |</div>
-								<div class="ml-1" v-if="totalVoters > 0">
-									{{
-										((answer.voters.length / totalVoters) * 100)
-											.toString()
-											.substring(0, 4)
-									}}%
+						<div class="d-flex justify-space-between align-center my-2">
+							<div>
+								<div
+									class="answer-title"
+									v-if="answer.text !== null || answer.text !== ''"
+								>
+									{{ answer.text }}
 								</div>
-								<div class="ml-1" v-else>0%</div>
+								<div
+									class="answer-title"
+									v-if="answer.text === null || answer.text === ''"
+								>
+									(No-Text)
+								</div>
+								<div class="d-flex">
+									<div>{{ answer.voters.length }} votes |</div>
+									<div class="ml-1" v-if="totalVoters > 0">
+										{{
+											((answer.voters.length / totalVoters) * 100)
+												.toString()
+												.substring(0, 4)
+										}}%
+									</div>
+									<div class="ml-1" v-else>0%</div>
+								</div>
 							</div>
+							<v-avatar tile size="60" v-if="answer.a_img !== null">
+								<v-img
+									:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
+									:lazy-src="require('../assets/logo.png')"
+								/>
+							</v-avatar>
 						</div>
-						<v-avatar tile size="60" v-if="answer.a_img !== null">
-							<v-img
-								:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
-								:lazy-src="require('../assets/logo.png')"
-							/>
-						</v-avatar>
-						<v-avatar tile size="60" v-else>
-							<v-img :src="require('../assets/no_img.png')" />
-						</v-avatar>
+						<v-divider class="ma-0" style="border-color: #f0f8ff59" />
 					</div>
 				</div>
 			</div>

@@ -276,7 +276,7 @@ export default {
 
 			if (this.polling.req_name === 1) {
 				if (this.other_forms.name == "") {
-					this.formErrors.email = ["The name field is required"];
+					this.formErrors.name = ["The name field is required"];
 					return false;
 				} else {
 					return true;
@@ -295,7 +295,7 @@ export default {
 								`p/verify-password/${this.polling_params}`,
 								this.other_forms
 							)
-							.then((response) => {
+							.then(() => {
 								if (this.checkOtherForms()) {
 									this.totalSteppers = [];
 								}
@@ -329,7 +329,6 @@ export default {
 					}
 				} else {
 					this.totalSteppers = [];
-					console.log("gausa");
 				}
 			}
 		},
