@@ -5,7 +5,7 @@
 		</div>
 		<div v-if="!error_Maps">
 			<div class="mt-4" v-if="deviceArea === null">Checking your area...</div>
-			<div v-if="!insideLocation">
+			<div v-if="insideLocation === false">
 				<div class="mt-4" v-if="!loading">Your location is not allowed</div>
 				<div class="d-flex justify-space-around">
 					<v-btn outlined class="mt-2" color="primary" v-if="!loading" tile>
@@ -23,15 +23,9 @@
 					</v-btn>
 				</div>
 			</div>
-			<div v-if="insideLocation" class="mt-4">
+			<div v-if="insideLocation === true" class="mt-4">
 				<div class="mt-4">You are in allowed location</div>
-				<v-btn
-					outlined
-					class="mt-2"
-					color="info"
-					@click="$emit('nextStep')"
-					tile
-				>
+				<v-btn outlined class="mt-2" color="info" @click="nextStep" tile>
 					Next
 				</v-btn>
 			</div>
@@ -138,6 +132,11 @@ export default {
 		this.items2.unshift({ header: "Group 2" });
 	},
 	methods: {
+		nextStep() {
+			if (!this.insideLocation) {
+				this.$emit("nextStep");
+			}
+		},
 		callbackMapsError(value) {
 			this.error_Maps = true;
 			this.errors = value;
@@ -163,8 +162,9 @@ export default {
 			this.error_Maps = false;
 			this.startChecking();
 		},
-		ray_casting(point, polygon) {
+		ray_casting(point) {
 			// console.log("start calculating");
+			var polygon = MojosantrenPolygon[0];
 			var n = polygon.length,
 				is_in = false,
 				x = point[0],
@@ -186,8 +186,11 @@ export default {
 			}
 			console.log("result ... => " + is_in);
 			if (is_in) {
+				this.error_Maps = false;
+				this.insideLocation = true;
 			} else {
 				// alert("Please go to the appropriate location.");
+				this.insideLocation = false;
 				this.callbackMapsError({
 					code: 3,
 					msg: "user is outside location.",
@@ -415,17 +418,14 @@ export default {
 			return new Promise((resolve, reject) => {
 				console.log("process geolocation");
 				Geolocation.watchPosition(opt, (position, err) => {
-					let newArraty = [];
-					newArraty[0] = position.coords.longitude;
-					newArraty[1] = position.coords.latitude;
+					let newArray = [];
+					newArray[0] = position.coords.longitude;
+					newArray[1] = position.coords.latitude;
 
 					this.loading = false;
 					this.deviceArea = "updated";
-					this.insideLocation = this.ray_casting(
-						newArraty,
-						MojosantrenPolygon[0]
-					);
-					this.myCoord = newArraty.slice();
+					this.ray_casting(newArray);
+					this.myCoord = newArray.slice();
 					console.log("Watchingpos", position.coords.accuracy);
 					if (err) {
 						console.log("Error", err);
