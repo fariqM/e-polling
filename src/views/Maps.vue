@@ -8,13 +8,16 @@
 			<div v-if="!insideLocation">
 				<div class="mt-4" v-if="!loading">Your location is not allowed</div>
 				<div class="d-flex justify-space-around">
-					<v-btn outlined class="mt-2" color="primary" v-if="!loading"> Back </v-btn>
+					<v-btn outlined class="mt-2" color="primary" v-if="!loading" tile>
+						Back
+					</v-btn>
 					<v-btn
 						outlined
 						class="mt-2"
 						color="primary"
 						@click="recasting_area()"
 						:loading="loading"
+						tile
 					>
 						<v-icon>mdi-reload</v-icon>Retry
 					</v-btn>
@@ -22,7 +25,15 @@
 			</div>
 			<div v-if="insideLocation" class="mt-4">
 				<div class="mt-4">You are in allowed location</div>
-				<v-btn outlined class="mt-2" color="info" @click="$emit('nextStep')"> Next </v-btn>
+				<v-btn
+					outlined
+					class="mt-2"
+					color="info"
+					@click="$emit('nextStep')"
+					tile
+				>
+					Next
+				</v-btn>
 			</div>
 		</div>
 		<div v-if="error_Maps" class="mt-2">
@@ -43,6 +54,7 @@
 			</div>
 			<v-btn
 				outlined
+				tile
 				color="primary"
 				@click="recasting_area()"
 				:loading="loading"
@@ -54,7 +66,7 @@
 </template>
 
 <script>
-import { Geolocation } from "@awesome-cordova-plugins/geolocation";
+import { Geolocation } from "@capacitor/geolocation";
 import { AndroidPermissions } from "@awesome-cordova-plugins/android-permissions";
 import { LocationAccuracy } from "@awesome-cordova-plugins/location-accuracy";
 import mapboxgl from "mapbox-gl";
@@ -71,6 +83,9 @@ import MojosantrenPolygon from "../data/mojosantren";
 // import SinfPolygon from "../data/sinf";
 
 export default {
+	props: {
+		routeLeave: Boolean,
+	},
 	data() {
 		return {
 			platform: "",
@@ -84,12 +99,13 @@ export default {
 			items: [],
 			search: null,
 			select: null,
-			geo_coords: {},
+			geo_coords: null,
 			val: "",
 			teks: "",
 			maps: {},
 			findLocMarker: null,
 			myCoord: [],
+			watchPos: [],
 			error_Maps: false,
 			insideLocation: false,
 			errors: {},
@@ -97,13 +113,17 @@ export default {
 			checkBtn: false,
 		};
 	},
+
 	watch: {
 		search(val) {
 			val && val !== this.select && this.querySelections(val);
 		},
-		checkBtn(newVal) {
+		routeLeave(newVal) {
+			console.log("clear watch");
 			if (newVal) {
-				this.recasting_area();
+				if (this.geo_coords !== null) {
+					Geolocation.clearWatch({ id: this.geo_coords });
+				}
 			}
 		},
 	},
@@ -117,7 +137,6 @@ export default {
 		this.items2.unshift({ header: "Group 1" });
 		this.items2.unshift({ header: "Group 2" });
 	},
-
 	methods: {
 		callbackMapsError(value) {
 			this.error_Maps = true;
@@ -142,26 +161,7 @@ export default {
 		recasting_area() {
 			this.loading = true;
 			this.error_Maps = false;
-			this.startChecking().then(() => {
-				this.PolyTest()
-					.then((result) => {
-						this.loading = false;
-						this.deviceArea = "updated";
-						this.insideLocation = result;
-					})
-					.catch((e) => {
-						this.loading = false;
-						console.log(e);
-						alert("Something went wrong when trying to get location.");
-						this.callbackMapsError({
-							code: 9,
-							msg: "Unknown Error",
-							user_msg:
-								"Please go to home page and retry to enter polling address",
-							on: "askAllowAccessGPS",
-						});
-					});
-			});
+			this.startChecking();
 		},
 		ray_casting(point, polygon) {
 			// console.log("start calculating");
@@ -184,10 +184,10 @@ export default {
 					is_in = !is_in;
 				}
 			}
-			// console.log("result ... => " + is_in);
+			console.log("result ... => " + is_in);
 			if (is_in) {
 			} else {
-				alert("Please go to the appropriate location.");
+				// alert("Please go to the appropriate location.");
 				this.callbackMapsError({
 					code: 3,
 					msg: "user is outside location.",
@@ -237,9 +237,9 @@ export default {
 				style: "mapbox://styles/mapbox/streets-v11",
 				// center: [-68.137343, 45.137451],
 				// mojo
-				// center: [112.59022972070082, -7.404347711911719],
+				center: [112.59022972070082, -7.404347711911719],
 				// ponokawan
-				center: [112.59364659438573, -7.397667849535032],
+				// center: [112.59364659438573, -7.397667849535032],
 				// uinsa
 				// center: [112.73398445302192, -7.322578854199146],
 
@@ -293,100 +293,20 @@ export default {
 				});
 			});
 
-			// this.maps.on("load", () => {
-			// 	this.maps.addSource("mojosantren", {
-			// 		type: "geojson",
-			// 		data: {
-			// 			type: "Feature",
-			// 			geometry: {
-			// 				type: "Polygon",
-			// 				// These coordinates outline Maine.
-			// 				coordinates: SinfPolygon,
-			// 			},
-			// 		},
-			// 	});
+			const geolocate = new mapboxgl.GeolocateControl({
+				positionOptions: {
+					enableHighAccuracy: true,
+				},
+				// When active the map will receive updates to the device's location as it changes.
+				trackUserLocation: true,
+				// Draw an arrow next to the location dot to indicate which direction the device is heading.
+				showUserHeading: true,
+			});
 
-			// 	// Add a new layer to visualize the polygon.
-			// 	this.maps.addLayer({
-			// 		id: "layermojosantren",
-			// 		type: "fill",
-			// 		source: "mojosantren", // reference the data source
-			// 		layout: {},
-			// 		paint: {
-			// 			"fill-color": "#c3f170", // blue color fill
-			// 			"fill-opacity": 0.5,
-			// 		},
-			// 	});
-
-			// 	// Add a black outline around the polygon.
-			// 	this.maps.addLayer({
-			// 		id: "outline2",
-			// 		type: "line",
-			// 		source: "mojosantren",
-			// 		layout: {},
-			// 		paint: {
-			// 			"line-color": "#97ea01",
-			// 			"line-width": 1,
-			// 		},
-			// 	});
-			// });
-
-			// this.maps.on("load", () => {
-			// 	this.maps.addSource("Uinsa", {
-			// 		type: "geojson",
-			// 		data: {
-			// 			type: "Feature",
-			// 			geometry: {
-			// 				type: "Polygon",
-			// 				// These coordinates outline Maine.
-			// 				coordinates: UinsaPolygon,
-			// 			},
-			// 		},
-			// 	});
-
-			// 	// Add a new layer to visualize the polygon.
-			// 	this.maps.addLayer({
-			// 		id: "layerUinsa",
-			// 		type: "fill",
-			// 		source: "Uinsa", // reference the data source
-			// 		layout: {},
-			// 		paint: {
-			// 			"fill-color": "#c3f170", // blue color fill
-			// 			"fill-opacity": 0.5,
-			// 		},
-			// 	});
-
-			// 	// Add a black outline around the polygon.
-			// 	this.maps.addLayer({
-			// 		id: "outline3",
-			// 		type: "line",
-			// 		source: "Uinsa",
-			// 		layout: {},
-			// 		paint: {
-			// 			"line-color": "#97ea01",
-			// 			"line-width": 1,
-			// 		},
-			// 	});
-			// });
-
-			this.maps.addControl(
-				new mapboxgl.GeolocateControl({
-					positionOptions: {
-						enableHighAccuracy: true,
-					},
-					// When active the map will receive updates to the device's location as it changes.
-					trackUserLocation: true,
-					// Draw an arrow next to the location dot to indicate which direction the device is heading.
-					showUserHeading: true,
-				})
-			);
-
-			// map.addControl(
-			// 	new MapboxGeocoder({
-			// 		accessToken: this.token,
-			// 		mapboxgl: mapboxgl,
-			// 	})
-			// );
+			this.maps.addControl(geolocate);
+			this.maps.on("load", () => {
+				geolocate.trigger();
+			});
 		},
 
 		checkGPSPermission() {
@@ -448,11 +368,7 @@ export default {
 								this.getLocation()
 									.then((location) => {
 										console.log(location);
-										let newArraty = [];
-										newArraty[0] = location.coords.longitude;
-										newArraty[1] = location.coords.longitude;
-										this.myCoord = newArraty.slice();
-										resolve(newArraty);
+										resolve(location);
 									})
 									.catch((e) => {
 										console.log(e);
@@ -487,37 +403,71 @@ export default {
 
 		getLocation() {
 			console.log("getGeolocation");
+			const opt = {
+				timeout: 10000,
+				enableHighAccuracy: true,
+			};
+
+			if (this.geo_coords !== null) {
+				Geolocation.clearWatch({ id: this.geo_coords });
+			}
+
 			return new Promise((resolve, reject) => {
-				this.geo_coords = Geolocation.getCurrentPosition({
-					enableHighAccuracy: true,
+				console.log("process geolocation");
+				Geolocation.watchPosition(opt, (position, err) => {
+					let newArraty = [];
+					newArraty[0] = position.coords.longitude;
+					newArraty[1] = position.coords.latitude;
+
+					this.loading = false;
+					this.deviceArea = "updated";
+					this.insideLocation = this.ray_casting(
+						newArraty,
+						MojosantrenPolygon[0]
+					);
+					this.myCoord = newArraty.slice();
+					console.log("Watchingpos", position.coords.accuracy);
+					if (err) {
+						console.log("Error", err);
+						this.geoErrorCallbacks();
+						reject(e);
+					}
 				})
-					.then((location) => {
+					.then((id) => {
+						this.geo_coords = id;
+						console.log("WatchId => " + id);
 						console.log("getGeolocation -> resolved");
-						resolve(location);
+						// resolve(id);
 					})
-					.catch((error) => {
-						if (this.platform === "android" || this.platform === "ios") {
-							alert("Something went wrong when trying to get location.");
-							this.callbackMapsError({
-								code: 9,
-								msg: "Unknown Error",
-								user_msg:
-									"Please go to home page and retry to enter polling address",
-								on: "getLocation",
-							});
-						} else {
-							alert("Please turn on location.");
-							this.callbackMapsError({
-								code: 2,
-								msg: "user does not allow app to turn on location",
-								user_msg: "Please turn on location.",
-								on: "askTurnOnGPS",
-							});
-						}
-						console.log("getGeolocation -> reject");
-						reject(error);
+					.catch((e) => {
+						reject(e);
+						this.geoErrorCallbacks();
 					});
 			});
+		},
+
+		geoErrorCallbacks() {
+			console.log("getGeolocation -> error");
+			console.log(e);
+			if (this.platform === "android" || this.platform === "ios") {
+				alert("Something went wrong when trying to get location.");
+				this.callbackMapsError({
+					code: 9,
+					msg: "Unknown Error",
+					user_msg:
+						"Please go to home page and retry to enter polling address. f its still error please clear cache and re-open the application",
+					on: "getLocation",
+				});
+			} else {
+				alert("Please turn on location.");
+				this.callbackMapsError({
+					code: 2,
+					msg: "user does not allow app to turn on location",
+					user_msg: "Please turn on location.",
+					on: "askTurnOnGPS",
+				});
+			}
+			console.log("getGeolocation -> reject");
 		},
 
 		startChecking() {

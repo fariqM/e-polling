@@ -10,6 +10,13 @@
 				<v-icon>mdi-help-circle-outline</v-icon>
 			</v-btn>
 		</v-app-bar>
+		<v-progress-linear
+			indeterminate
+			absolute
+			color="primary"
+			v-if="loadingBar"
+		></v-progress-linear>
+
 		<v-main style="width: 100%">
 			<div v-if="pageReady">
 				<v-stepper v-model="e1" v-if="!reqReady && totalSteppers.length > 0">
@@ -86,6 +93,7 @@
 											deviceHasPolling === true && error_CheckDevice === false
 										"
 										outlined
+										tile
 										color="primary"
 										@click="navigation_back"
 									>
@@ -96,12 +104,13 @@
 											deviceHasPolling === false && error_CheckDevice === false
 										"
 										outlined
+										tile
 										color="primary"
 										@click="nextStep()"
 									>
 										Next
 									</v-btn>
-									<v-btn v-if="error_CheckDevice" outlined color="primary">
+									<v-btn v-if="error_CheckDevice" outlined color="primary" tile>
 										Back
 									</v-btn>
 									<v-btn
@@ -122,7 +131,7 @@
 										class="d-flex align-center justify-center"
 										style="max-height: 300px"
 									>
-										<maps v-on:nextStep="nextStep()" />
+										<maps v-on:nextStep="nextStep()" :routeLeave="routeLeave" />
 									</div>
 
 									<v-btn small class="mt-3" color="primary" text
@@ -166,7 +175,7 @@
 											:error-messages="formErrors.password"
 										></v-text-field>
 									</div>
-									<v-btn outlined color="primary" @click="nextStep(true)">
+									<v-btn outlined color="primary" @click="nextStep(true)" tile>
 										Next
 									</v-btn>
 								</div>
@@ -223,6 +232,8 @@ export default {
 			polling_params: "",
 			pageReady: false,
 			notFound: false,
+			loadingBtn: false,
+			loadingBar: false,
 			link: null,
 			alertCopy: false,
 			e1: 1,
@@ -246,11 +257,22 @@ export default {
 				email: [],
 				password: [],
 			},
+			routeLeave: false,
 		};
+	},
+	beforeRouteLeave(to, from, next) {
+		console.log("route leave");
+		this.routeLeave = true;
+		this.loadingBar = true;
+		setTimeout(() => {
+			this.loadingBar = false;
+			next();
+		}, 1000);
 	},
 	mounted() {
 		const dir = this.$router.history.current.params.pollingUrl;
 		// console.log(this.$router.history.current.params);
+		this.loadingBar = true;
 		this.polling_params = dir;
 		this.link = `https://polling-pol.site/p/${dir}`;
 		this.getPolling();
@@ -337,15 +359,6 @@ export default {
 			this.deviceArea = value;
 			console.log("cek area  result device => " + value);
 		},
-		checkAreaAgain() {
-			this.checkBtn = true;
-			this.mapsError = false;
-		},
-		mapsError(errors) {
-			this.mapsError = true;
-			this.errors = errors;
-			console.log("maps error. code => " + JSON.stringify(errors));
-		},
 		navigation_back() {
 			this.$router.push({ name: "home" });
 		},
@@ -355,6 +368,7 @@ export default {
 			axios
 				.get(`p/${this.polling_params}`)
 				.then((response) => {
+					this.loadingBar = false;
 					this.polling = response.data.data;
 					this.pageReady = true;
 					this.checkReq();

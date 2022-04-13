@@ -26,8 +26,7 @@ Vue.config.productionTip = false
 // const __BASE_URL_SERVER = 'http://192.168.1.3:8888/';
 // const __BASE_URL_SERVER = 'https://poll-polling.test/';
 // const __BASE_URL_SERVER = 'https://poll-polling.site/';
-const __BASE_URL_SERVER = 'https://7847-2001-448a-50e1-f245-ac7b-137-a3c1-874f.ngrok.io/';
-
+const __BASE_URL_SERVER = 'https://9d53-125-164-251-55.ngrok.io/';
 
 const __API_PREFIX = 'api'
 // window.axios = AXIOS;

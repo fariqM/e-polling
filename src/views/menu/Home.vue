@@ -11,7 +11,7 @@
 			</v-col>
 			<v-col class="pa-0" cols="12">
 				<div class="noselect" style="font-weight: 600; font-size: 2.3rem">
-					Join pollings
+					Join poll
 				</div>
 				<!-- <div class="d-flex justify-space-around align-center">
 					<v-btn :to="{ name: 'maps' }">Go to Map Testing</v-btn>
