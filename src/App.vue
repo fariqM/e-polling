@@ -59,4 +59,8 @@ export default {
 .poll-container {
 	padding: 12px;
 }
+.answer-title {
+	font-size: 1.4rem;
+	font-weight: 500;
+}
 </style>

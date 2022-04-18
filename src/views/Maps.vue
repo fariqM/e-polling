@@ -25,7 +25,7 @@
 			</div>
 			<div v-if="insideLocation === true" class="mt-4">
 				<div class="mt-4">You are in allowed location</div>
-				<v-btn outlined class="mt-2" color="info" @click="nextStep" tile>
+				<v-btn outlined class="mt-2" color="info" @click="nextStep()" tile>
 					Next
 				</v-btn>
 			</div>
@@ -133,7 +133,9 @@ export default {
 	},
 	methods: {
 		nextStep() {
-			if (!this.insideLocation) {
+			console.log("next");
+			console.log(this.insideLocation);
+			if (this.insideLocation) {
 				this.$emit("nextStep");
 			}
 		},
@@ -184,7 +186,7 @@ export default {
 					is_in = !is_in;
 				}
 			}
-			console.log("result ... => " + is_in);
+			// console.log("result ... => " + is_in);
 			if (is_in) {
 				this.error_Maps = false;
 				this.insideLocation = true;
@@ -426,7 +428,7 @@ export default {
 					this.deviceArea = "updated";
 					this.ray_casting(newArray);
 					this.myCoord = newArray.slice();
-					console.log("Watchingpos", position.coords.accuracy);
+					// console.log("Watchingpos", position.coords.accuracy);
 					if (err) {
 						console.log("Error", err);
 						this.geoErrorCallbacks();

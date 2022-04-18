@@ -1,10 +1,15 @@
 <template>
 	<div style="height: 100%; width: 100%">
-		<v-app-bar color="prim-grad" dense>
+		<v-app-bar color="prim-grad" dense absolute>
 			<v-btn icon @click="navigation_back">
 				<v-icon>mdi-chevron-left</v-icon>
 			</v-btn>
-			<v-toolbar-title>Polling Requirements</v-toolbar-title>
+			<v-toolbar-title>
+				<template v-if="totalSteppers.length !== 0">
+					Polling Requirements
+				</template>
+				<template v-else> Polling </template>
+			</v-toolbar-title>
 			<v-spacer />
 			<v-btn icon>
 				<v-icon>mdi-help-circle-outline</v-icon>
@@ -17,8 +22,13 @@
 			v-if="loadingBar"
 		></v-progress-linear>
 
-		<v-main style="width: 100%">
-			<div v-if="pageReady">
+		<v-main style="width: 100%; height: 100%">
+			<div
+				v-if="pageReady"
+				class="overflow-y-auto"
+				style="width: 100%; max-height: calc(100vh - 100px); margin-top: 48px"
+			>
+				<!-- stepper -->
 				<v-stepper v-model="e1" v-if="!reqReady && totalSteppers.length > 0">
 					<v-stepper-header
 						:class="{ 'd-flex justify-center': totalSteppers.length === 1 }"
@@ -119,7 +129,7 @@
 										class="mt-4"
 										color="primary"
 										text
-										><u>See Why ? {{ deviceId }}</u></v-btn
+										><u>See Why ?</u></v-btn
 									>
 								</div>
 								<!-- end step device chek -->
@@ -159,6 +169,7 @@
 											dense
 											hide-details="auto"
 											solo-inverted
+											type="email"
 											style="border-radius: 0px"
 											v-if="polling.req_email === 1"
 											v-model="other_forms.email"
@@ -175,7 +186,13 @@
 											:error-messages="formErrors.password"
 										></v-text-field>
 									</div>
-									<v-btn outlined color="primary" @click="nextStep(true)" tile>
+									<v-btn
+										outlined
+										color="primary"
+										@click="nextStep(true)"
+										tile
+										:loading="loadingBtn"
+									>
 										Next
 									</v-btn>
 								</div>
@@ -184,21 +201,87 @@
 						</template>
 					</v-stepper-items>
 				</v-stepper>
+				<!-- stepper -->
+
 				<div v-if="reqReady || totalSteppers.length == 0">
 					<v-img
+						v-if="polling.q_img !== null"
 						width="100%"
-						src="https://cdn.vuetifyjs.com/images/cards/server-room.jpg"
+						:src="`${serverUrl}storage/img/${polling.q_img}`"
+						:lazy-src="require('../assets/logo.png')"
+						contain
 					>
+						<template v-slot:placeholder>
+							<v-row class="fill-height ma-0" align="center" justify="center">
+								<v-progress-circular
+									indeterminate
+									color="grey lighten-5"
+								></v-progress-circular>
+							</v-row>
+						</template>
 					</v-img>
-					<div class="pa-2">
+					<div class="poll-container">
 						<div style="font-size: 1.6rem; font-weight: 600">
-							Lorem ipsum dolor sit amet, consectetur adipiscing .
+							{{ polling.question }}
 						</div>
-						<div>
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-							eiusmod tempor incididunt ut labore et dolore magna aliqua.
+						<div class="mb-2">
+							{{ polling.description }}
 						</div>
-						<v-divider class="my-2" style="border-color: #f0f8ff59" />
+						<v-divider class="ma-0 mb-2" style="border-color: #f0f8ff59" />
+						<div style="font-size: 1rem; font-weight: 600">
+							*Choose one of the options below :
+						</div>
+						<div v-for="(answer, i) in polling.answers" :key="i">
+							<div class="d-flex justify-space-between align-center my-8">
+								<input
+									type="radio"
+									:id="`control_0` + i"
+									name="select"
+									:value="answer"
+									v-model="selectedAnswer"
+								/>
+								<label
+									:for="`control_0` + i"
+									class="d-flex justify-space-between align-center c-label pa-2"
+								>
+									<div class="noselect answer-title">
+										<template v-if="answer.text !== null || answer.text !== ''">
+											{{ answer.text }}
+										</template>
+										<template v-if="answer.text === null || answer.text === ''">
+											(No-Text)
+										</template>
+									</div>
+									<v-avatar tile size="60" v-if="answer.a_img !== null">
+										<v-img
+											:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
+											:lazy-src="require('../assets/logo.png')"
+										/>
+									</v-avatar>
+								</label>
+							</div>
+						</div>
+					</div>
+					<div
+						class="submit-btn d-flex justify-space-between align-center px-3"
+					>
+						<v-btn text outlined tile color="info">
+							<v-icon>mdi-star-circle</v-icon>
+							Rate Us
+						</v-btn>
+						<v-btn class="prim-grad" tile disabled v-if="deviceHasPolling">
+							<v-icon>mdi-check</v-icon>
+							Submitted
+						</v-btn>
+						<v-btn
+							class="prim-grad"
+							tile
+							:disabled="submitDisabled"
+							@click="submitPoll"
+							:loading="loadingSubmit"
+							v-if="!deviceHasPolling"
+							>Submit</v-btn
+						>
 					</div>
 				</div>
 			</div>
@@ -229,11 +312,13 @@ export default {
 	},
 	data() {
 		return {
+			serverUrl: window.__BASE_URL__,
 			polling_params: "",
 			pageReady: false,
 			notFound: false,
 			loadingBtn: false,
 			loadingBar: false,
+			loadingSubmit: false,
 			link: null,
 			alertCopy: false,
 			e1: 1,
@@ -258,7 +343,19 @@ export default {
 				password: [],
 			},
 			routeLeave: false,
+			wHeight: window.innerHeight,
+			selectedAnswer: null,
+			submitDisabled: true,
 		};
+	},
+	watch: {
+		selectedAnswer: function (newVal) {
+			if (newVal !== null) {
+				this.submitDisabled = false;
+			} else {
+				this.submitDisabled = true;
+			}
+		},
 	},
 	beforeRouteLeave(to, from, next) {
 		console.log("route leave");
@@ -278,38 +375,120 @@ export default {
 		this.getPolling();
 	},
 	methods: {
+		submitPoll() {
+			// console.log(this.deviceId);
+			// return;
+			if (this.selectedAnswer !== null) {
+				this.loadingSubmit = true;
+				// ${this.selectedAnswer.id}
+				axios
+					.post(`polling/submit/${this.selectedAnswer.id}`, {
+						name: this.other_forms.name,
+						email: this.other_forms.email,
+						device_id: this.deviceId,
+						is_verified: 1,
+					})
+					.then((response) => {
+						setTimeout(() => {
+							this.$router.replace({ name: "home" });
+						}, 5000);
+						toast.success({
+							title: "Successfully submitted!",
+							message: "you will be redirected to the home page in 5 seconds.",
+							position: "topCenter",
+							timeout: 5000,
+							// ballon:true,
+							transitionInMobile: "fadeInRight",
+							transitionOutMobile: "fadeOutRight",
+							displayMode: 2,
+						});
+						this.deviceHasPolling = true;
+						this.loadingSubmit = false;
+						console.log(response);
+					})
+					.catch((e) => {
+						this.loadingSubmit = false;
+						console.log(e);
+						if (e.response) {
+							if (e.response.status === 404) {
+								toast.error({
+									title: "Something went wrong",
+									message: "Poll not found or has expired.",
+									position: "topCenter",
+									timeout: 2500,
+									// ballon:true,
+									transitionInMobile: "fadeInRight",
+									transitionOutMobile: "fadeOutRight",
+									displayMode: 2,
+								});
+							} else {
+								toast.error({
+									title: "Something went wrong",
+									message: "Something went wrong, please try again later.",
+									position: "topCenter",
+									timeout: 2500,
+									// ballon:true,
+									transitionInMobile: "fadeInRight",
+									transitionOutMobile: "fadeOutRight",
+									displayMode: 2,
+								});
+							}
+
+							console.log(e.response);
+						} else {
+							toast.error({
+								title: "Something went wrong",
+								message: "Something went wrong, please try again later.",
+								position: "topCenter",
+								timeout: 2500,
+								// ballon:true,
+								transitionInMobile: "fadeInRight",
+								transitionOutMobile: "fadeOutRight",
+								displayMode: 2,
+							});
+						}
+					});
+			}
+		},
 		checkOtherForms() {
 			const isEmail = String(this.other_forms.email)
 				.toLowerCase()
 				.match(
 					/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 				);
+
+			let result = true;
 			if (this.polling.req_email === 1) {
 				if (this.other_forms.email == "") {
 					this.formErrors.email = ["The email field is required"];
-					return false;
+					result = false;
 				} else if (!isEmail) {
 					this.formErrors.email = ["Must be an email"];
-					return false;
+					result = false;
 				} else {
-					return true;
+					result = true;
 				}
 			}
 
 			if (this.polling.req_name === 1) {
+				console.log("cek req name");
 				if (this.other_forms.name == "") {
 					this.formErrors.name = ["The name field is required"];
-					return false;
+					result = false;
 				} else {
-					return true;
+					result = true;
 				}
 			}
+
+			return result;
 		},
 		nextStep(other_forms = false) {
 			if (this.e1 !== this.totalSteppers.length) {
 				this.e1 += 1;
 			} else {
+				this.loadingBtn = true;
 				if (other_forms) {
+					// console.log("cek");
 					this.resetErrors();
 					if (this.polling.with_password) {
 						axios
@@ -318,11 +497,15 @@ export default {
 								this.other_forms
 							)
 							.then(() => {
+								console.log(this.checkOtherForms());
 								if (this.checkOtherForms()) {
 									this.totalSteppers = [];
+									console.log(this.other_forms);
 								}
+								this.loadingBtn = false;
 							})
 							.catch((e) => {
+								this.loadingBtn = false;
 								if (e.response) {
 									console.log(e.response);
 									if (e.response.status === 422) {
@@ -348,6 +531,7 @@ export default {
 						if (this.checkOtherForms()) {
 							this.totalSteppers = [];
 						}
+						this.loadingBtn = false;
 					}
 				} else {
 					this.totalSteppers = [];
@@ -379,19 +563,34 @@ export default {
 							axios
 								.get(`p/${this.polling_params}/${result.uuid}`)
 								.then((res) => {
-									console.log("checking device id");
-									this.checkIsDeviceHasPol(res.data.data).then((hasPoll) => {
-										setTimeout(() => {
-											// console.log(hasPoll);
-											if (hasPoll) {
-												this.deviceHasPolling = true;
-											} else {
-												this.deviceHasPolling = false;
-											}
-										}, 1000);
-									});
+									console.log(
+										"checking device id",
+										this.checkIsDeviceHasPol(res.data.data)
+									);
+									let checkState = null;
+
+									if (this.checkIsDeviceHasPol(res.data.data)) {
+										checkState = true;
+									} else {
+										checkState = false;
+									}
+									setTimeout(() => {
+										this.deviceHasPolling = checkState;
+									}, 1000);
+
+									// this.checkIsDeviceHasPol(res.data.data).then((hasPoll) => {
+									// 	setTimeout(() => {
+									// 		// console.log(hasPoll);
+									// 		if (hasPoll) {
+									// 			this.deviceHasPolling = true;
+									// 		} else {
+									// 			this.deviceHasPolling = false;
+									// 		}
+									// 	}, 1000);
+									// });
 								})
 								.catch((e) => {
+									console.log(e);
 									this.error_CheckDevice = true;
 								});
 						});
@@ -421,19 +620,16 @@ export default {
 			return await Device.getId();
 		},
 		checkIsDeviceHasPol(value) {
-			return new Promise((resolve) => {
-				value.forEach((poll) => {
-					let result = null;
-					poll.answers.forEach((answer) => {
-						if (answer.voters.length > 0) {
-							result = true;
-						} else {
-							result = false;
-						}
-					});
-					resolve(result);
+			// console.log("this.devId", this.deviceId);
+			let result = false;
+			value.forEach((poll) => {
+				poll.answers.forEach((answer) => {
+					if (answer.voters.length > 0) {
+						result = true;
+					}
 				});
 			});
+			return result;
 		},
 		resetErrors() {
 			this.formErrors.password = [];
@@ -473,5 +669,61 @@ export default {
 	max-height: 100%;
 	grid-template-columns: auto;
 	gap: 0.7rem;
+}
+.c-label {
+	width: 100%;
+	height: 100%;
+	border: 2px solid #108ddf;
+	box-shadow: 0px 3px 10px -2px hsla(150, 5%, 65%, 0.5);
+	position: relative;
+}
+.submit-btn {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	min-height: 50px;
+	box-shadow: -4px -4px 6px -2px rgb(27 57 96);
+}
+</style>
+
+<style lang="scss">
+input[type="radio"] {
+	display: none;
+	&:not(:disabled) ~ label {
+		cursor: pointer;
+	}
+	&:disabled ~ label {
+		color: hsla(150, 5%, 75%, 1);
+		border-color: hsla(150, 5%, 75%, 1);
+		box-shadow: none;
+		cursor: not-allowed;
+	}
+}
+
+input[type="radio"]:checked + label {
+	background: linear-gradient(
+		145deg,
+		rgba(16, 141, 223, 1) 0%,
+		rgba(8, 115, 191, 1) 41%,
+		rgba(12, 59, 102, 1) 100%
+	);
+	&::after {
+		color: rgb(61, 63, 67);
+		content: "\F0E1E";
+		font: normal normal normal 24px/1 "Material Design Icons";
+		border: 2px solid #63b6ee;
+		font-size: 24px;
+		position: absolute;
+		top: -25px;
+		left: 50%;
+		transform: translateX(-50%);
+		height: 50px;
+		width: 50px;
+		line-height: 50px;
+		text-align: center;
+		border-radius: 50%;
+		background: white;
+		box-shadow: 0px 2px 5px -2px hsla(0, 0%, 0%, 0.25);
+	}
 }
 </style>
