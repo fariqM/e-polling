@@ -126,7 +126,9 @@ export default {
 		this.platform = window.platform;
 		// console.log(MojosantrenPolygon);
 		this.setMap();
-		this.recasting_area();
+		setTimeout(() => {
+			this.recasting_area();
+		}, 500);
 		// console.log(this.items.length);
 		this.items2.unshift({ header: "Group 1" });
 		this.items2.unshift({ header: "Group 2" });
@@ -162,7 +164,9 @@ export default {
 		recasting_area() {
 			this.loading = true;
 			this.error_Maps = false;
-			this.startChecking();
+			this.startChecking().then((result) => {
+				console.log(result);
+			});
 		},
 		ray_casting(point) {
 			// console.log("start calculating");
@@ -202,25 +206,25 @@ export default {
 			}
 			return is_in;
 		},
-		PolyTest() {
-			return new Promise((resolve, reject) => {
-				let point = [];
-				this.getLocation()
-					.then((result) => {
-						point[0] = result.coords.longitude;
-						point[1] = result.coords.latitude;
+		// PolyTest() {
+		// 	return new Promise((resolve, reject) => {
+		// 		let point = [];
+		// 		this.getLocation()
+		// 			.then((result) => {
+		// 				point[0] = result.coords.longitude;
+		// 				point[1] = result.coords.latitude;
 
-						// begin test
-						const polygonTest = this.ray_casting(point, MojosantrenPolygon[0]);
-						// console.log(polygonTest);
-						resolve(polygonTest);
-					})
-					.catch((e) => {
-						console.log(e);
-						reject("error");
-					});
-			});
-		},
+		// 				// begin test
+		// 				const polygonTest = this.ray_casting(point, MojosantrenPolygon[0]);
+		// 				// console.log(polygonTest);
+		// 				resolve(polygonTest);
+		// 			})
+		// 			.catch((e) => {
+		// 				console.log(e);
+		// 				reject("error");
+		// 			});
+		// 	});
+		// },
 		notFocus() {
 			this.items = [];
 		},
@@ -411,6 +415,7 @@ export default {
 			const opt = {
 				timeout: 10000,
 				enableHighAccuracy: true,
+				maximumAge: 30000
 			};
 
 			if (this.geo_coords !== null) {
@@ -419,7 +424,19 @@ export default {
 
 			return new Promise((resolve, reject) => {
 				console.log("process geolocation");
+				Geolocation.checkPermissions().then((perm) => {
+					console.log(perm);
+				});
 				Geolocation.watchPosition(opt, (position, err) => {
+					if (err) {
+						Geolocation.clearWatch({ id: this.geo_coords });
+						console.log("Error", err);
+						this.geoErrorCallbacks();
+						reject(err);
+					}
+					console.log("Watchingpos", position.coords.accuracy);
+
+					console.log(err);
 					let newArray = [];
 					newArray[0] = position.coords.longitude;
 					newArray[1] = position.coords.latitude;
@@ -428,18 +445,12 @@ export default {
 					this.deviceArea = "updated";
 					this.ray_casting(newArray);
 					this.myCoord = newArray.slice();
-					// console.log("Watchingpos", position.coords.accuracy);
-					if (err) {
-						console.log("Error", err);
-						this.geoErrorCallbacks();
-						reject(e);
-					}
 				})
 					.then((id) => {
 						this.geo_coords = id;
 						console.log("WatchId => " + id);
 						console.log("getGeolocation -> resolved");
-						// resolve(id);
+						resolve(id);
 					})
 					.catch((e) => {
 						reject(e);
@@ -450,7 +461,7 @@ export default {
 
 		geoErrorCallbacks() {
 			console.log("getGeolocation -> error");
-			console.log(e);
+			// console.log(e);
 			if (this.platform === "android" || this.platform === "ios") {
 				alert("Something went wrong when trying to get location.");
 				this.callbackMapsError({
@@ -517,15 +528,9 @@ export default {
 					});
 				} else {
 					this.getLocation()
-						.then((location) => {
-							let newArraty = [];
-							newArraty[0] = location.coords.longitude;
-							newArraty[1] = location.coords.longitude;
-							this.myCoord = newArraty.slice();
-						})
-						.catch((e) => {
-							console.log(e);
-						});
+					.catch((e) => {
+						console.log(e);
+					});
 				}
 			});
 		},

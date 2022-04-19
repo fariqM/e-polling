@@ -6,7 +6,7 @@
 			</v-btn>
 			<v-toolbar-title>Polling Details</v-toolbar-title>
 			<v-spacer />
-			<v-btn icon>
+			<v-btn icon @click="goToEdit">
 				<v-icon>mdi-circle-edit-outline</v-icon>
 			</v-btn>
 		</v-app-bar>
@@ -34,7 +34,7 @@
 			>
 				<v-img
 					v-if="polling.q_img !== null"
-					:src="`${serverUrl}storage/img/${polling.q_img}`"
+					:src="`${serverUrl}storage/img/${polling.q_img}` + '?rnd=' + cacheKey"
 					:lazy-src="require('../assets/logo.png')"
 					contain
 				>
@@ -151,6 +151,8 @@ export default {
 			alertCopy: false,
 			polling: null,
 			totalVoters: null,
+			cacheKey: +new Date(),
+			intervalImg: null,
 		};
 	},
 	mounted() {
@@ -171,6 +173,17 @@ export default {
 		// this.getPolling();
 	},
 	methods: {
+		goToEdit() {
+			console.log(this.polling);
+			this.$router.replace({
+				name: "edit.poll",
+				params: {
+					ownerId: this.polling.owner_id,
+					pollingUrl: this.polling.dir,
+					polling: this.polling,
+				},
+			});
+		},
 		navigation_back() {
 			this.$router.push({ name: "my.poll" });
 		},
@@ -201,5 +214,4 @@ export default {
 </script>
 
 <style>
-
 </style>

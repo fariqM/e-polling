@@ -207,7 +207,7 @@
 					<v-img
 						v-if="polling.q_img !== null"
 						width="100%"
-						:src="`${serverUrl}storage/img/${polling.q_img}`"
+						:src="`${serverUrl}storage/img/${polling.q_img}`  + '?rnd=' + cacheKey"
 						:lazy-src="require('../assets/logo.png')"
 						contain
 					>
@@ -254,7 +254,7 @@
 									</div>
 									<v-avatar tile size="60" v-if="answer.a_img !== null">
 										<v-img
-											:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
+											:src="`${serverUrl}storage/img/answers/${answer.a_img}`  + '?rnd=' + cacheKey"
 											:lazy-src="require('../assets/logo.png')"
 										/>
 									</v-avatar>
@@ -346,6 +346,8 @@ export default {
 			wHeight: window.innerHeight,
 			selectedAnswer: null,
 			submitDisabled: true,
+			cacheKey: +new Date(),
+
 		};
 	},
 	watch: {
@@ -674,7 +676,7 @@ export default {
 	width: 100%;
 	height: 100%;
 	border: 2px solid #108ddf;
-	box-shadow: 0px 3px 10px -2px hsla(150, 5%, 65%, 0.5);
+	/* box-shadow: 0px 3px 10px -2px hsla(150, 5%, 65%, 0.5); */
 	position: relative;
 }
 .submit-btn {
@@ -682,7 +684,8 @@ export default {
 	bottom: 0;
 	width: 100%;
 	min-height: 50px;
-	box-shadow: -4px -4px 6px -2px rgb(27 57 96);
+	box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
+		rgba(255, 255, 255, 0.15) 0px 0px 3px 1px;
 }
 </style>
 

@@ -54,7 +54,11 @@
 									<v-avatar tile size="60" v-if="polling.q_img !== null">
 										<v-img
 											:lazy-src="require('../../assets/logo.png')"
-											:src="`${serverUrl}storage/img/${polling.q_img}`"
+											:src="
+												`${serverUrl}storage/img/${polling.q_img}` +
+												'?rnd=' +
+												cacheKey
+											"
 										>
 											<template v-slot:placeholder>
 												<v-row
@@ -98,6 +102,8 @@ export default {
 			deviceReady: false,
 			serverUrl: window.__BASE_URL__,
 			text: "You haven't created any poll yet",
+			cacheKey: +new Date(),
+			intervalImg: null,
 		};
 	},
 	mounted() {

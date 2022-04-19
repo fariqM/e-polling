@@ -11,6 +11,7 @@ import BaseMenuLayout from '../views/menu/Layout'
 import MyPoll from '../views/menu/MyPolling'
 import ReqDetails from '../views/Reqdetails'
 import ShowPoll from '../views/ShowMyPoll'
+import EditPoll from '../views/EditPoll'
 import Testing from '../views/Radio'
 
 
@@ -58,6 +59,11 @@ const routes = [
     path: '/{:ownerId}/{:pollingUrl}/show',
     name: 'show.poll',
     component: ShowPoll
+  },
+  {
+    path: '/{:ownerId}/{:pollingUrl}/edit',
+    name: 'edit.poll',
+    component: EditPoll
   },
   {
     path: '/new-poll/r-details',
