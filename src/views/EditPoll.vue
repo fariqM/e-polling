@@ -177,7 +177,13 @@
 										v-bind="attrs"
 										v-on="on"
 									>
-										<v-img :src="answer.img"></v-img>
+										<v-img
+											:src="
+												answer.img_type === null
+													? `${serverUrl}storage/img/answers/${answer.img}?rnd=${cacheKey}`
+													: answer.img
+											"
+										></v-img>
 									</v-avatar>
 								</template>
 								<v-list light>
@@ -556,12 +562,7 @@ export default {
 			this.deviceRest = this.polling.with_device_res;
 			this.answers = this.polling.answers.map((answer) => ({
 				...answer,
-				img:
-					answer.a_img !== null
-						? `${this.serverUrl}storage/img/answers/${answer.a_img}` +
-						  "?rnd=" +
-						  this.cacheKey
-						: null,
+				img: answer.a_img !== null ? answer.a_img : null,
 				img_file: answer.a_img !== null ? `old_file` : null,
 				img_type: null,
 			}));
@@ -669,10 +670,12 @@ export default {
 		},
 		addAnswer() {
 			const question = {
+				id: null,
 				text: "",
 				img: null,
 				img_file: null,
 				img_type: null,
+				polling_id: this.polling.id,
 			};
 
 			this.answers.push(question);
@@ -724,12 +727,15 @@ export default {
 				let a_file = [];
 				this.answers.forEach((element, i) => {
 					// console.log(element);
+					bodyFormData.append("old_a_img[]", element.img);
+
 					bodyFormData.append("a_img[]", element.img_file);
 				});
 				axios
 					.post(`p/${this.polling.dir}/update`, bodyFormData)
 					.then((response) => {
 						this.loadingBtn = false;
+						this.$router.replace({ name: "my.poll" });
 						console.log(response);
 					})
 					.catch((e) => {

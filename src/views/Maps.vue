@@ -109,8 +109,10 @@ export default {
 	},
 
 	watch: {
-		search(val) {
-			val && val !== this.select && this.querySelections(val);
+		myCoord(val) {
+			// console.log("change coords", val);
+			this.maps.setCenter(val);
+			this.maps.setZoom(16);
 		},
 		routeLeave(newVal) {
 			console.log("clear watch");
@@ -134,6 +136,13 @@ export default {
 		this.items2.unshift({ header: "Group 2" });
 	},
 	methods: {
+		pointOnCircle() {
+			// console.log("change marker", this.myCoord);
+			return {
+				type: "Point",
+				coordinates: this.myCoord,
+			};
+		},
 		nextStep() {
 			console.log("next");
 			console.log(this.insideLocation);
@@ -246,13 +255,13 @@ export default {
 				style: "mapbox://styles/mapbox/streets-v11",
 				// center: [-68.137343, 45.137451],
 				// mojo
-				center: [112.59022972070082, -7.404347711911719],
+				// center: [112.59022972070082, -7.404347711911719],
 				// ponokawan
-				// center: [112.59364659438573, -7.397667849535032],
+				center: [112.59364659438573, -7.397667849535032],
 				// uinsa
 				// center: [112.73398445302192, -7.322578854199146],
 
-				zoom: 13,
+				zoom: 14,
 			});
 
 			// const marker2 = new mapboxgl.Marker({ color: "black", rotation: 45 })
@@ -300,21 +309,31 @@ export default {
 						"line-width": 1,
 					},
 				});
-			});
 
-			const geolocate = new mapboxgl.GeolocateControl({
-				positionOptions: {
-					enableHighAccuracy: true,
-				},
-				// When active the map will receive updates to the device's location as it changes.
-				trackUserLocation: true,
-				// Draw an arrow next to the location dot to indicate which direction the device is heading.
-				showUserHeading: true,
-			});
+				this.maps.addSource("point", {
+					type: "geojson",
+					data: this.pointOnCircle(),
+				});
 
-			this.maps.addControl(geolocate);
-			this.maps.on("load", () => {
-				geolocate.trigger();
+				this.maps.addLayer({
+					id: "point",
+					source: "point",
+					type: "circle",
+					paint: {
+						"circle-radius": 10,
+						"circle-color": "#007cbf",
+					},
+				});
+
+				let animateMarker = () => {
+					// Update the data to a new position based on the animation timestamp. The
+					// divisor in the expression `timestamp / 1000` controls the animation speed.
+					this.maps.getSource("point").setData(this.pointOnCircle());
+
+					// Request the next frame of the animation.
+					requestAnimationFrame(animateMarker);
+				};
+				animateMarker();
 			});
 		},
 
@@ -413,9 +432,9 @@ export default {
 		getLocation() {
 			console.log("getGeolocation");
 			const opt = {
-				timeout: 10000,
+				timeout: 500,
 				enableHighAccuracy: true,
-				maximumAge: 30000
+				// maximumAge: 30000
 			};
 
 			if (this.geo_coords !== null) {
@@ -431,26 +450,31 @@ export default {
 					if (err) {
 						Geolocation.clearWatch({ id: this.geo_coords });
 						console.log("Error", err);
-						this.geoErrorCallbacks();
+						this.loading = false;
+						this.deviceArea = "updated";
+						this.insideLocation = false;
+						// this.geoErrorCallbacks();
 						reject(err);
+						// resolve(err);
+					} else {
+						console.log("Watchingpos", position.coords.accuracy);
+
+						console.log(err);
+						let newArray = [];
+						newArray[0] = position.coords.longitude;
+						newArray[1] = position.coords.latitude;
+
+						this.loading = false;
+						this.deviceArea = "updated";
+						this.ray_casting(newArray);
+						this.myCoord = newArray.slice();
+						resolve(newArray);
 					}
-					console.log("Watchingpos", position.coords.accuracy);
-
-					console.log(err);
-					let newArray = [];
-					newArray[0] = position.coords.longitude;
-					newArray[1] = position.coords.latitude;
-
-					this.loading = false;
-					this.deviceArea = "updated";
-					this.ray_casting(newArray);
-					this.myCoord = newArray.slice();
 				})
 					.then((id) => {
 						this.geo_coords = id;
 						console.log("WatchId => " + id);
 						console.log("getGeolocation -> resolved");
-						resolve(id);
 					})
 					.catch((e) => {
 						reject(e);
@@ -527,8 +551,7 @@ export default {
 						}
 					});
 				} else {
-					this.getLocation()
-					.catch((e) => {
+					this.getLocation().catch((e) => {
 						console.log(e);
 					});
 				}
