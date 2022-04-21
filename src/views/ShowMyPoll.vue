@@ -24,7 +24,9 @@
 						</div>
 						<!-- <v-btn></v-btn> -->
 					</div>
-					<v-icon size="70" color="primary" v-else>mdi-reload</v-icon>
+					<v-icon size="70" color="primary" v-else style="margin-top: 5rem"
+						>mdi-reload</v-icon
+					>
 				</div>
 			</div>
 			<div
@@ -123,7 +125,11 @@
 							</div>
 							<v-avatar tile size="60" v-if="answer.a_img !== null">
 								<v-img
-									:src="`${serverUrl}storage/img/answers/${answer.a_img}`"
+									:src="
+										`${serverUrl}storage/img/answers/${answer.a_img}` +
+										'?rnd=' +
+										cacheKey
+									"
 									:lazy-src="require('../assets/logo.png')"
 								/>
 							</v-avatar>
@@ -156,25 +162,36 @@ export default {
 		};
 	},
 	mounted() {
-		// console.log(this.$router);
 		const param = this.$router.history.current.params;
 		this.polling_params = param;
-
 		if (param.ownerId) {
-			this.polling = param.polling;
-			this.link = `https://polling-pol.site/p/${param.polling.dir}`;
-			this.totalVoters = this.countVotes(param.polling.answers);
-			// console.log(this.totalVoters);
-			this.pageReady = true;
+			this.getPolling(param.ownerId, param.pollingUrl);
 		} else {
 			this.notFound = true;
 		}
-		// console.log(this.polling);
-		// this.getPolling();
 	},
 	methods: {
+		getPolling(ownerId, dir) {
+			axios
+				.get(`my-poll/${ownerId}/${dir}`)
+				.then((response) => {
+					this.link = `https://polling-pol.site/p/${dir}`;
+					this.polling = response.data.data;
+					this.totalVoters = this.countVotes(this.polling.answers);
+					this.pageReady = true;
+				})
+				.catch((e) => {
+					console.log(e);
+					if (e.response) {
+						console.log(e.response);
+						if (e.response.status === 404) {
+							this.notFound = true;
+						}
+					}
+				});
+		},
 		goToEdit() {
-			console.log(this.polling);
+			// console.log(this.polling);
 			this.$router.replace({
 				name: "edit.poll",
 				params: {

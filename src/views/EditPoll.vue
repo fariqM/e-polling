@@ -18,7 +18,7 @@
 			<v-btn icon @click="navigation_back">
 				<v-icon>mdi-chevron-left</v-icon>
 			</v-btn>
-			<v-toolbar-title>Create New Poll</v-toolbar-title>
+			<v-toolbar-title>Edit Poll</v-toolbar-title>
 		</v-app-bar>
 		<v-main style="height: 100%">
 			<v-container
@@ -524,21 +524,6 @@ export default {
 	},
 	methods: {
 		setModel() {
-			// created_at: "2022-04-18T08:13:10.000000Z";
-			// deadline: null;
-			// description: "Quisquam elit conse";
-			// dir: "6715d";
-			// id: 2;
-			// owner_id: "ca1bf760-5024-4782-b53c-c07042951a87";
-			// q_img: null;
-			// question: "Quibusdam illum mai";
-			// req_email: 0;
-			// req_name: 0;
-			// updated_at: "2022-04-18T08:13:10.000000Z";
-			// with_area_res: 1;
-			// with_device_res: 1;
-			// with_password: 1;
-
 			if (this.polling.q_img !== null) {
 				// console.log(`${this.serverUrl}storage/img/${this.polling.q_img}`);
 				this.question.img =
@@ -572,13 +557,6 @@ export default {
 				this.deadline = this.formatDate(this.polling.deadline);
 				this.deadlineValue = this.polling.deadline;
 			}
-
-			// this.question.title = this.polling.question;
-			// this.question.title = this.polling.question;
-			// this.question.title = this.polling.question;
-			// this.question.title = this.polling.question;
-			// this.question.title = this.polling.question;
-			// this.question.title = this.polling.question;
 		},
 		prependIconCallback(idx) {
 			if (this.answers.length <= 2) {
@@ -681,7 +659,14 @@ export default {
 			this.answers.push(question);
 		},
 		navigation_back() {
-			this.$router.push({ name: "my.poll" });
+			this.$router.replace({
+				name: "show.poll",
+				params: {
+					ownerId: this.polling.owner_id,
+					pollingUrl: this.polling.dir,
+					polling: this.polling,
+				},
+			});
 		},
 		savePoll() {
 			this.loadingBtn = true;

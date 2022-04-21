@@ -665,6 +665,7 @@ export default {
 					.post("p/create", bodyFormData)
 					.then((response) => {
 						this.loadingBtn = false;
+						this.$router.replace({ name: "my.poll" });
 						console.log(response);
 					})
 					.catch((e) => {

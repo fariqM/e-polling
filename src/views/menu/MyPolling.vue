@@ -1,7 +1,7 @@
 <template>
 	<div style="height: 100%">
 		<div style="height: 100%" v-if="!deviceReady" class="d-flex justify-center">
-			<v-icon size="70" color="primary">mdi-reload</v-icon>
+			<v-icon size="70" color="primary" style="margin-top: 5rem">mdi-reload</v-icon>
 		</div>
 		<v-container fluid v-else style="height: 100%">
 			<div id="create" style="height: 100%">

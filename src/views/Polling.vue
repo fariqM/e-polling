@@ -296,7 +296,7 @@
 						Oops your polling is not found or expired.
 					</div>
 				</div>
-				<v-icon size="70" color="primary" v-else>mdi-reload</v-icon>
+				<v-icon size="70" color="primary" v-else style="margin-top: 5rem">mdi-reload</v-icon>
 			</div>
 		</v-main>
 	</div>
