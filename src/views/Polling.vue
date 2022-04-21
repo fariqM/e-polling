@@ -304,7 +304,7 @@
 
 <script>
 import { Device } from "@capacitor/device";
-import Maps from "./Maps.vue";
+import Maps from "./components/Maps.vue";
 
 export default {
 	components: {

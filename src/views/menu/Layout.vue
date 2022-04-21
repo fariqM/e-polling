@@ -10,7 +10,9 @@
 			<router-view />
 		</v-main>
 
-		<v-bottom-navigation v-model="value" grow absolute>
+		<bottom-nav :options="options" :value="selected" />
+
+		<!-- <v-bottom-navigation v-model="value" grow absolute>
 			<v-btn
 				value="home"
 				style="height: 100%"
@@ -54,18 +56,37 @@
 
 				<v-icon>mdi-account-outline</v-icon>
 			</v-btn>
-		</v-bottom-navigation>
+		</v-bottom-navigation> -->
 	</div>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
+import BottomNav from "../components/BottomNav.vue";
 
 export default {
+	components: {
+		BottomNav,
+	},
+
 	data() {
 		return {
 			value: "home",
 			loading: false,
+			options: [
+				{
+					id: "home",
+					icon: "mdi-home-outline",
+					title: "HOME",
+					path: { name: "home" },
+				},
+				{
+					id: "poll",
+					icon: "mdi-vote-outline",
+					title: "POLLING",
+					path: { name: "my.poll" },
+				},
+			],
 		};
 	},
 	mounted() {
@@ -74,11 +95,20 @@ export default {
 				this.loading = true;
 			}
 		}
+		console.log(this.$router.history.current.name);
 	},
 	computed: {
 		...mapGetters({
 			myPoll: "getMyPoll",
 		}),
+		selected: {
+			set: function (newVal) {
+				return newVal;
+			},
+			get: function () {
+				return this.$router.history.current.name;
+			},
+		},
 	},
 	watch: {
 		myPoll: function (newVal) {
@@ -90,7 +120,7 @@ export default {
 				}
 			}
 		},
-		value: function(newVal) {
+		value: function (newVal) {
 			// console.log(newVal);
 			if (newVal === "poll") {
 				if (this.myPoll === null) {
@@ -99,7 +129,7 @@ export default {
 					this.loading = false;
 				}
 			}
-		}
+		},
 	},
 };
 </script>

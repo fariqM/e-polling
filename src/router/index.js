@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import HomeView from '../views/menu/Home.vue'
-import MapsView from '../views/Maps.vue'
 import Polling from '../views/Polling'
 import History from '../views/menu/History'
 import Account from '../views/menu/Account'
@@ -12,7 +11,7 @@ import MyPoll from '../views/menu/MyPolling'
 import ReqDetails from '../views/Reqdetails'
 import ShowPoll from '../views/ShowMyPoll'
 import EditPoll from '../views/EditPoll'
-import Testing from '../views/Radio'
+
 
 
 Vue.use(VueRouter)
@@ -71,19 +70,9 @@ const routes = [
     component: ReqDetails
   },
   {
-    path: '/maps',
-    name: 'maps',
-    component: MapsView
-  },
-  {
     path: '/p/:pollingUrl',
     name: 'polling',
     component: Polling
-  },
-  {
-    path: '/page/testing',
-    name: 'testing.page',
-    component: Testing
   },
 ]
 

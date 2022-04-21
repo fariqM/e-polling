@@ -70,8 +70,8 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 // polygon data
 // import KrianPolygon from "../data/krian";
-import PonokawanPolygon from "../data/ponokawan";
-import MojosantrenPolygon from "../data/mojosantren";
+import PonokawanPolygon from "../../data/ponokawan";
+import MojosantrenPolygon from "../../data/mojosantren";
 // import UinsaPolygon from "../data/uinsa";
 // import BayangPolygon from "../data/bayang";
 // import SinfPolygon from "../data/sinf";

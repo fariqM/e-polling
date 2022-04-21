@@ -15,7 +15,9 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import izi_Toast from 'izitoast'
 import "./plugins/iziToast.min.css"
 
-
+// tap n hold directive
+var VueTouch = require('vue-touch')
+Vue.use(VueTouch, {name: 'v-touch'})
 
 window.platform = Capacitor.getPlatform();
 window._ = require('./plugins/lodash_plugins/lodash.min.js');

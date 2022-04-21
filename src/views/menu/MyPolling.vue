@@ -1,7 +1,9 @@
 <template>
 	<div style="height: 100%">
 		<div style="height: 100%" v-if="!deviceReady" class="d-flex justify-center">
-			<v-icon size="70" color="primary" style="margin-top: 5rem">mdi-reload</v-icon>
+			<v-icon size="70" color="primary" style="margin-top: 5rem"
+				>mdi-reload</v-icon
+			>
 		</div>
 		<v-container fluid v-else style="height: 100%">
 			<div id="create" style="height: 100%">
@@ -31,50 +33,62 @@
 						max-height="81.7vh"
 					>
 						<v-card
+							v-click-outside="cancelSelect"
 							tile
-							class="pa-2 noselect mb-2"
+							class="noselect mb-2"
 							v-for="(polling, i) in pollings"
 							:key="i"
 							v-ripple
 							@click="showPolling(polling)"
 						>
-							<div class="d-flex justify-space-between align-center">
-								<div style="max-width: 80%">
-									<div
-										style="font-size: 1.2rem; font-weight: 600; max-width: 100%"
-										class="ellipsis-text"
-									>
-										{{ polling.question }}
-									</div>
-									<div style="font-size: 0.9rem">
-										{{ countTotalVoters(polling.answers) }} Vote
-									</div>
-								</div>
-								<div>
-									<v-avatar tile size="60" v-if="polling.q_img !== null">
-										<v-img
-											:lazy-src="require('../../assets/logo.png')"
-											:src="
-												`${serverUrl}storage/img/${polling.q_img}` +
-												'?rnd=' +
-												cacheKey
+							<v-touch
+								style="color: #ffffff"
+								tag="a"
+								v-on:press="selectPoll($event, i)"
+								v-bind:press-options="{ time: 1000 }"
+							>
+								<div class="d-flex justify-space-between align-center pa-2">
+									<div style="max-width: 80%">
+										<div
+											style="
+												font-size: 1.2rem;
+												font-weight: 600;
+												max-width: 100%;
 											"
+											class="ellipsis-text"
 										>
-											<template v-slot:placeholder>
-												<v-row
-													class="fill-height ma-0"
-													align="center"
-													justify="center"
-												>
-													<v-progress-circular
-														indeterminate
-														color="grey lighten-5"
-													></v-progress-circular>
-												</v-row> </template
-										></v-img>
-									</v-avatar>
+											{{ polling.question }}
+										</div>
+										<div style="font-size: 0.9rem">
+											{{ countTotalVoters(polling.answers) }} Vote
+										</div>
+									</div>
+									<div>
+										<v-avatar tile size="60" v-if="polling.q_img !== null">
+											<v-img
+												:lazy-src="require('../../assets/logo.png')"
+												:src="
+													`${serverUrl}storage/img/${polling.q_img}` +
+													'?rnd=' +
+													cacheKey
+												"
+											>
+												<template v-slot:placeholder>
+													<v-row
+														class="fill-height ma-0"
+														align="center"
+														justify="center"
+													>
+														<v-progress-circular
+															indeterminate
+															color="grey lighten-5"
+														></v-progress-circular>
+													</v-row> </template
+											></v-img>
+										</v-avatar>
+									</div>
 								</div>
-							</div>
+							</v-touch>
 						</v-card>
 					</v-sheet>
 				</div>
@@ -88,6 +102,22 @@
 				</div>
 			</div>
 		</v-container>
+
+		<div class="text-center">
+			<v-dialog v-model="deleteDialog">
+				<v-card>
+					<v-card-title class="text-h5"> Alert ! </v-card-title>
+					<v-card-text> Are you sure want to delete this poll? </v-card-text>
+					<v-card-actions>
+						<v-spacer></v-spacer>
+						<v-btn color="primary" text @click="deleteDialog = false">
+							No
+						</v-btn>
+						<v-btn color="primary" text @click="deletePoll"> Yes </v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-dialog>
+		</div>
 	</div>
 </template>
 
@@ -104,6 +134,9 @@ export default {
 			text: "You haven't created any poll yet",
 			cacheKey: +new Date(),
 			intervalImg: null,
+			selectedPoll: null,
+			indexSelectedPoll: null,
+			deleteDialog: false,
 		};
 	},
 	mounted() {
@@ -160,6 +193,25 @@ export default {
 		},
 	},
 	methods: {
+		deletePoll() {
+			if (this.indexSelectedPoll !== null) {
+				this.pollings.splice(this.indexSelectedPoll, 1);
+			}
+			this.indexSelectedPoll = null;
+			this.deleteDialog = false;
+		},
+		cancelSelect() {
+			this.selectedPoll.classList.remove("selected-poll");
+			// this.selectedPoll = null;
+			// this.selectedPollValue = null;
+		},
+		selectPoll(domElement, value) {
+			this.selectedPoll = domElement.target.parentNode.parentNode;
+			this.indexSelectedPoll = value;
+			console.log(value);
+			this.selectedPoll.classList.add("selected-poll");
+			this.deleteDialog = true;
+		},
 		showPolling(polling) {
 			this.$router.push({
 				name: "show.poll",
@@ -217,5 +269,8 @@ export default {
 
 #create .v-btn--floating {
 	position: relative;
+}
+.selected-poll {
+	background-color: #0069b373 !important;
 }
 </style>
