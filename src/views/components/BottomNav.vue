@@ -1,5 +1,5 @@
 <template>
-	<div class="gr-btn-container-foreground" :style="cssVariables">
+	<div class="gr-btn-container-foreground shadow-box" :style="cssVariables">
 		<div
 			v-for="(button, index) in localOptions"
 			:key="`grow-button-${index}`"
@@ -128,7 +128,7 @@ export default {
 
 <style scoped>
 .gr-btn-container-foreground {
-	position: fixed;
+	position: absolute;
 	direction: ltr;
 	display: flex;
 	align-items: center;
@@ -138,8 +138,6 @@ export default {
 	height: 45px;
 	background: #000;
 	/* box-shadow: 0 0 5px 0 #eee; */
-	box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
-		rgba(255, 255, 255, 0.15) 0px 0px 3px 1px;
 }
 .gr-btn-container {
 	display: flex;
@@ -174,9 +172,9 @@ export default {
 	transition: all 0.3s ease;
 	margin: 0px !important;
 }
-.gr-btn-icon-active {
-	/* color: var(--color); */
-}
+/* .gr-btn-icon-active {
+	color: var(--color);
+} */
 .gr-btn-title {
 	position: relative;
 	/* color: var(--color); */

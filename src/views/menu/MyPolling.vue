@@ -26,6 +26,22 @@
 					<v-subheader class="pa-0 ma-0 c-subheader noselect"
 						>My Polling List</v-subheader
 					>
+					<v-alert
+						dense
+						type="info"
+						color="info"
+						class="mb-2"
+						tile
+						dark
+						style="font-size: 0.9rem !important"
+						dismissible
+						colored-border
+						border="left"
+						transition="scale-transition"
+						v-model="alertOpt"
+					>
+						Tips! Press and hold to delete.
+					</v-alert>
 
 					<v-sheet
 						class="overflow-y-auto"
@@ -33,7 +49,6 @@
 						max-height="81.7vh"
 					>
 						<v-card
-							v-click-outside="cancelSelect"
 							tile
 							class="noselect mb-2"
 							v-for="(polling, i) in pollings"
@@ -104,16 +119,18 @@
 		</v-container>
 
 		<div class="text-center">
-			<v-dialog v-model="deleteDialog">
-				<v-card>
+			<v-dialog v-model="deleteDialog" v-if="deviceReady && pollings.length > 0" persistent>
+				<div style="height:10px; width:100%" class="info"></div>
+				<v-card tile >
 					<v-card-title class="text-h5"> Alert ! </v-card-title>
 					<v-card-text> Are you sure want to delete this poll? </v-card-text>
+					<v-divider/>
 					<v-card-actions>
 						<v-spacer></v-spacer>
-						<v-btn color="primary" text @click="deleteDialog = false">
+						<v-btn color="primary" @click="cancelSelect" outlined tile>
 							No
 						</v-btn>
-						<v-btn color="primary" text @click="deletePoll"> Yes </v-btn>
+						<v-btn tile text @click="deletePoll"> Yes </v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
@@ -137,6 +154,7 @@ export default {
 			selectedPoll: null,
 			indexSelectedPoll: null,
 			deleteDialog: false,
+			alertOpt: false,
 		};
 	},
 	mounted() {
@@ -180,6 +198,9 @@ export default {
 				});
 			}
 		});
+		setTimeout(() => {
+			this.alertOpt = true;
+		}, 600);
 	},
 	computed: {
 		myPoll: {
@@ -202,6 +223,8 @@ export default {
 		},
 		cancelSelect() {
 			this.selectedPoll.classList.remove("selected-poll");
+			this.deleteDialog = false;
+
 			// this.selectedPoll = null;
 			// this.selectedPollValue = null;
 		},

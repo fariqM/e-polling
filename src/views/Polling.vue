@@ -263,7 +263,7 @@
 						</div>
 					</div>
 					<div
-						class="submit-btn d-flex justify-space-between align-center px-3"
+						class="submit-btn shadow-box d-flex justify-space-between align-center px-3"
 					>
 						<v-btn text outlined tile color="info">
 							<v-icon>mdi-star-circle</v-icon>
@@ -684,8 +684,6 @@ export default {
 	bottom: 0;
 	width: 100%;
 	min-height: 50px;
-	box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px,
-		rgba(255, 255, 255, 0.15) 0px 0px 3px 1px;
 }
 </style>
 

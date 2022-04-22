@@ -21,6 +21,9 @@ export default {
 .v-application--wrap {
 	align-items: center;
 }
+.v-dialog {
+	border-radius: 0px !important;
+}
 .noselect {
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none; /* Safari */
@@ -62,5 +65,9 @@ export default {
 .answer-title {
 	font-size: 1.4rem;
 	font-weight: 500;
+}
+.shadow-box {
+	box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 8px,
+		rgba(255, 255, 255, 0.15) 0px 0px 5px 0px;
 }
 </style>
