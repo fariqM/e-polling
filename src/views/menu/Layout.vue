@@ -1,11 +1,5 @@
 <template>
 	<div style="height: 100%">
-		<v-progress-linear
-			indeterminate
-			absolute
-			color="primary"
-			v-if="loading"
-		></v-progress-linear>
 		<v-main style="height: 100%">
 			<router-view />
 		</v-main>
@@ -61,7 +55,6 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 import BottomNav from "../components/BottomNav.vue";
 
 export default {
@@ -72,7 +65,7 @@ export default {
 	data() {
 		return {
 			value: "home",
-			loading: false,
+			loading: true,
 			options: [
 				{
 					id: "home",
@@ -89,18 +82,7 @@ export default {
 			],
 		};
 	},
-	mounted() {
-		if (this.myPoll === null) {
-			if (this.value === "poll") {
-				this.loading = true;
-			}
-		}
-		console.log(this.$router.history.current.name);
-	},
 	computed: {
-		...mapGetters({
-			myPoll: "getMyPoll",
-		}),
 		selected: {
 			set: function (newVal) {
 				return newVal;
@@ -108,27 +90,6 @@ export default {
 			get: function () {
 				return this.$router.history.current.name;
 			},
-		},
-	},
-	watch: {
-		myPoll: function (newVal) {
-			if (newVal !== null) {
-				this.loading = false;
-			} else {
-				if (this.value === "poll") {
-					this.loading = true;
-				}
-			}
-		},
-		value: function (newVal) {
-			// console.log(newVal);
-			if (newVal === "poll") {
-				if (this.myPoll === null) {
-					this.loading = true;
-				} else {
-					this.loading = false;
-				}
-			}
 		},
 	},
 };

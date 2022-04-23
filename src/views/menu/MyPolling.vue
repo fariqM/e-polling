@@ -1,5 +1,11 @@
 <template>
 	<div style="height: 100%">
+		<v-progress-linear
+			indeterminate
+			absolute
+			color="primary"
+			v-if="loading"
+		></v-progress-linear>
 		<div style="height: 100%" v-if="!deviceReady" class="d-flex justify-center">
 			<v-icon size="70" color="primary" style="margin-top: 5rem"
 				>mdi-reload</v-icon
@@ -27,6 +33,24 @@
 						>My Polling List</v-subheader
 					>
 					<v-alert
+						dense
+						type="error"
+						color="error"
+						class="mb-2"
+						tile
+						dark
+						style="font-size: 0.9rem !important"
+						dismissible
+						colored-border
+						border="left"
+						transition="scale-transition"
+						v-model="networkError"
+					>
+						Network error, please check your internet connection or try again
+						later.
+					</v-alert>
+					<v-alert
+						v-if="!networkError"
 						dense
 						type="info"
 						color="info"
@@ -108,23 +132,46 @@
 					</v-sheet>
 				</div>
 
-				<div
-					v-else
-					class="d-flex align-center justify-center"
-					style="height: 100%"
-				>
-					{{ text }}
+				<div style="height: 100%" v-else>
+					<v-alert
+						dense
+						type="error"
+						color="error"
+						class="mb-2"
+						tile
+						dark
+						style="font-size: 0.9rem !important"
+						dismissible
+						colored-border
+						border="left"
+						transition="scale-transition"
+						v-model="networkError"
+					>
+						Network error, please check your internet connection or try again
+						later.
+					</v-alert>
+					<div
+						v-if="!networkError"
+						class="d-flex align-center justify-center"
+						style="height: 100%"
+					>
+						{{ text }}
+					</div>
 				</div>
 			</div>
 		</v-container>
 
 		<div class="text-center">
-			<v-dialog v-model="deleteDialog" v-if="deviceReady && pollings.length > 0" persistent>
-				<div style="height:10px; width:100%" class="info"></div>
-				<v-card tile >
+			<v-dialog
+				v-model="deleteDialog"
+				v-if="deviceReady && pollings.length > 0"
+				persistent
+			>
+				<div style="height: 10px; width: 100%" class="info"></div>
+				<v-card tile>
 					<v-card-title class="text-h5"> Alert ! </v-card-title>
 					<v-card-text> Are you sure want to delete this poll? </v-card-text>
-					<v-divider/>
+					<v-divider />
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn color="primary" @click="cancelSelect" outlined tile>
@@ -155,49 +202,12 @@ export default {
 			indexSelectedPoll: null,
 			deleteDialog: false,
 			alertOpt: false,
+			loading: false,
+			networkError: false,
 		};
 	},
 	mounted() {
-		this.checkStorage().then((result) => {
-			if (result === null || result == undefined) {
-				this.getDeviceId().then((deviceId) => {
-					this.fetchPollData(deviceId)
-						.then((response) => {
-							const data = response.data.data.slice();
-							this.setPoll(JSON.stringify(data));
-							this.pollings = data;
-							this.deviceReady = true;
-							this.myPoll = data;
-						})
-						.catch((e) => {
-							this.deviceReady = true;
-							if (e.response) {
-								this.text = e.response.data.message;
-							} else {
-								this.text = "Connection error, please check your internet.";
-							}
-						});
-				});
-			} else {
-				// console.log("storage exist");
-				const pollStorage = JSON.parse(result);
-				this.pollings = pollStorage.slice();
-				this.deviceReady = true;
-				this.getDeviceId().then((deviceId) => {
-					// console.log(deviceId);
-					this.fetchPollData(deviceId)
-						.then((response) => {
-							const data = response.data.data.slice();
-							this.setPoll(JSON.stringify(data));
-							this.pollings = data;
-							this.myPoll = data;
-						})
-						.catch((e) => {
-							console.log(e);
-						});
-				});
-			}
-		});
+		this.prepareData();
 		setTimeout(() => {
 			this.alertOpt = true;
 		}, 600);
@@ -270,6 +280,11 @@ export default {
 						resolve(response);
 					})
 					.catch((e) => {
+						this.networkError = true
+						console.log(e);
+						if (e.response) {
+							console.log(e.response);
+						}
 						reject(e);
 					});
 			});
@@ -280,6 +295,52 @@ export default {
 				totalVoters += element.voters.length;
 			});
 			return totalVoters;
+		},
+		prepareData() {
+			this.loading = true;
+			this.checkStorage().then((result) => {
+				if (result === null || result == undefined) {
+					this.getDeviceId().then((deviceId) => {
+						this.fetchPollData(deviceId)
+							.then((response) => {
+								const data = response.data.data.slice();
+								this.setPoll(JSON.stringify(data));
+								this.pollings = data;
+								this.deviceReady = true;
+								this.myPoll = data;
+								this.loading = false;
+							})
+							.catch((e) => {
+								this.loading = false;
+								this.deviceReady = true;
+								if (e.response) {
+									this.text = e.response.data.message;
+								} else {
+									this.text = "Connection error, please check your internet.";
+								}
+							});
+					});
+				} else {
+					const pollStorage = JSON.parse(result);
+					this.pollings = pollStorage.slice();
+					this.deviceReady = true;
+					this.getDeviceId().then((deviceId) => {
+						// console.log(deviceId);
+						this.fetchPollData(deviceId)
+							.then((response) => {
+								this.loading = false;
+								const data = response.data.data.slice();
+								this.setPoll(JSON.stringify(data));
+								this.pollings = data;
+								this.myPoll = data;
+							})
+							.catch((e) => {
+								this.loading = false;
+								console.log(e);
+							});
+					});
+				}
+			});
 		},
 	},
 };
