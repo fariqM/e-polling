@@ -3,7 +3,7 @@
 		<v-progress-linear
 			indeterminate
 			absolute
-			color="primary"
+			color="prim-grad"
 			v-if="loading"
 		></v-progress-linear>
 		<div style="height: 100%" v-if="!deviceReady" class="d-flex justify-center">
@@ -12,7 +12,7 @@
 			>
 		</div>
 		<v-container fluid v-else style="height: 100%">
-			<div id="create" style="height: 100%">
+			<div id="create" style="height: 100%; display: flex; flex-flow: column">
 				<v-speed-dial
 					v-if="deviceReady"
 					:top="false"
@@ -28,9 +28,9 @@
 					</template>
 				</v-speed-dial>
 
-				<div v-if="deviceReady && pollings.length > 0" style="height: 100%">
+				<div>
 					<v-subheader class="pa-0 ma-0 c-subheader noselect"
-						>My Polling List</v-subheader
+						>My Polling List <template v-if="pollings.length > 0">({{ pollings.length }})</template></v-subheader
 					>
 					<v-alert
 						dense
@@ -38,7 +38,6 @@
 						color="error"
 						class="mb-2"
 						tile
-						dark
 						style="font-size: 0.9rem !important"
 						dismissible
 						colored-border
@@ -50,13 +49,29 @@
 						later.
 					</v-alert>
 					<v-alert
-						v-if="!networkError"
+						dense
+						type="success"
+						color="success"
+						class="mb-2"
+						tile
+						style="font-size: 0.9rem !important"
+						dismissible
+						colored-border
+						border="left"
+						transition="scale-transition"
+						v-model="deleteSuccess"
+					>
+						A poll has been deleted.
+					</v-alert>
+				</div>
+
+				<div v-if="deviceReady && pollings.length > 0" style="height: 100%">
+					<v-alert
 						dense
 						type="info"
 						color="info"
 						class="mb-2"
 						tile
-						dark
 						style="font-size: 0.9rem !important"
 						dismissible
 						colored-border
@@ -66,11 +81,10 @@
 					>
 						Tips! Press and hold to delete.
 					</v-alert>
-
 					<v-sheet
 						class="overflow-y-auto"
 						color="transparent"
-						max-height="81.7vh"
+						:max-height="`calc(100vh - ${contentHeight}px)`"
 					>
 						<v-card
 							tile
@@ -132,24 +146,7 @@
 					</v-sheet>
 				</div>
 
-				<div style="height: 100%" v-else>
-					<v-alert
-						dense
-						type="error"
-						color="error"
-						class="mb-2"
-						tile
-						dark
-						style="font-size: 0.9rem !important"
-						dismissible
-						colored-border
-						border="left"
-						transition="scale-transition"
-						v-model="networkError"
-					>
-						Network error, please check your internet connection or try again
-						later.
-					</v-alert>
+				<div v-else style="flex: 1 1 auto">
 					<div
 						v-if="!networkError"
 						class="d-flex align-center justify-center"
@@ -181,6 +178,30 @@
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
+
+			<v-dialog v-model="deleteLoading" persistent>
+				<v-card tile>
+					<v-card-text>
+						<!-- <v-card-text> Deleting... </v-card-text> -->
+						<div
+							style="
+								font-size: 0.875rem;
+								font-weight: 400;
+								line-height: 1.375rem;
+								letter-spacing: 0.0071428571em;
+							"
+							class="my-1"
+						>
+							Deleting...
+						</div>
+						<v-progress-linear
+							indeterminate
+							color="prim-grad"
+							class="mb-0"
+						></v-progress-linear>
+					</v-card-text>
+				</v-card>
+			</v-dialog>
 		</div>
 	</div>
 </template>
@@ -188,8 +209,13 @@
 <script>
 import { Device } from "@capacitor/device";
 import { Storage } from "@capacitor/storage";
+import Alert from "../components/Alert.vue";
 
 export default {
+	components: {
+		Alert,
+	},
+
 	data() {
 		return {
 			pollings: [],
@@ -201,9 +227,12 @@ export default {
 			selectedPoll: null,
 			indexSelectedPoll: null,
 			deleteDialog: false,
-			alertOpt: false,
 			loading: false,
+			deleteLoading: false,
 			networkError: false,
+			alertOpt: false,
+			deleteSuccess: false,
+			contentHeight: 109,
 		};
 	},
 	mounted() {
@@ -211,6 +240,35 @@ export default {
 		setTimeout(() => {
 			this.alertOpt = true;
 		}, 600);
+	},
+	watch: {
+		networkError: function (newVal) {
+			if (newVal) {
+				this.contentHeight += 48;
+			} else {
+				setTimeout(() => {
+					this.contentHeight -= 48;
+				}, 350);
+			}
+		},
+		deleteSuccess: function (newVal) {
+			if (newVal) {
+				this.contentHeight += 48;
+			} else {
+				setTimeout(() => {
+					this.contentHeight -= 48;
+				}, 350);
+			}
+		},
+		alertOpt: function (newVal) {
+			if (newVal) {
+				this.contentHeight += 48;
+			} else {
+				setTimeout(() => {
+					this.contentHeight -= 48;
+				}, 350);
+			}
+		},
 	},
 	computed: {
 		myPoll: {
@@ -224,12 +282,52 @@ export default {
 		},
 	},
 	methods: {
-		deletePoll() {
-			if (this.indexSelectedPoll !== null) {
-				this.pollings.splice(this.indexSelectedPoll, 1);
+		calcHeight() {
+			let alertHeight = 0;
+			let navbarHeight = 52;
+			let headerHeight = 60;
+
+			if (this.networkError) {
+				alertHeight += 45;
 			}
-			this.indexSelectedPoll = null;
-			this.deleteDialog = false;
+			if (this.alertOpt) {
+				alertHeight += 45;
+			}
+			if (this.deleteSuccess) {
+				alertHeight += 45;
+			}
+
+			return alertHeight + navbarHeight + headerHeight;
+		},
+		deletePoll() {
+			// this.pollings.splice(this.indexSelectedPoll, 1);
+			// return
+			if (this.indexSelectedPoll !== null) {
+				const selected = this.pollings[this.indexSelectedPoll];
+				this.deleteDialog = false;
+				this.deleteLoading = true;
+				axios
+					.delete(`p/${selected.dir}/${selected.owner_id}/delete`)
+					.then((response) => {
+						this.pollings.splice(this.indexSelectedPoll, 1);
+						this.indexSelectedPoll = null;
+						this.deleteLoading = false;
+						this.deleteSuccess = true;
+						this.cancelSelect();
+						this.prepareData(true);
+						console.log("response", response);
+					})
+					.catch((e) => {
+						this.networkError = true;
+						this.indexSelectedPoll = null;
+						this.deleteLoading = false;
+						console.log("error delete poll", e);
+						if (e.response) {
+							console.log("error response delete poll", e.response);
+						}
+					});
+			} else {
+			}
 		},
 		cancelSelect() {
 			this.selectedPoll.classList.remove("selected-poll");
@@ -241,7 +339,7 @@ export default {
 		selectPoll(domElement, value) {
 			this.selectedPoll = domElement.target.parentNode.parentNode;
 			this.indexSelectedPoll = value;
-			console.log(value);
+			// console.log(value);
 			this.selectedPoll.classList.add("selected-poll");
 			this.deleteDialog = true;
 		},
@@ -280,7 +378,7 @@ export default {
 						resolve(response);
 					})
 					.catch((e) => {
-						this.networkError = true
+						this.networkError = true;
 						console.log(e);
 						if (e.response) {
 							console.log(e.response);
@@ -296,10 +394,10 @@ export default {
 			});
 			return totalVoters;
 		},
-		prepareData() {
+		prepareData(fresh = false) {
 			this.loading = true;
 			this.checkStorage().then((result) => {
-				if (result === null || result == undefined) {
+				if (result === null || result == undefined || fresh) {
 					this.getDeviceId().then((deviceId) => {
 						this.fetchPollData(deviceId)
 							.then((response) => {
