@@ -6,17 +6,27 @@
 			</v-btn>
 			<v-toolbar-title>Polling Details</v-toolbar-title>
 			<v-spacer />
-			<v-btn icon @click="goToEdit">
+			<v-btn icon @click="goToEdit" v-if="pageReady">
 				<v-icon>mdi-circle-edit-outline</v-icon>
 			</v-btn>
 		</v-app-bar>
 		<v-main style="width: 100%">
 			<div
+				v-if="fetchError"
+				style="display: flex; flex-flow: column; margin-top: 48px"
+			>
+				<div style="flex: 1 1 auto" class="info">
+					<div style="max-height:calc(100vh - 48px)">
+						<v-img :src="require('../assets/404Page.png')" max-height="calc(100vh - 48px)"/>
+					</div>
+				</div>
+			</div>
+			<div
 				class="d-flex justify-center align-center"
 				style="height: 80%"
-				v-if="!pageReady"
+				v-if="!pageReady && !fetchError"
 			>
-				<div class="text-center">
+				<div class="text-center" v-if="!fetchError">
 					<div v-if="notFound">
 						<div style="font-size: 5rem; font-weight: 600">404</div>
 						<div style="font-size: 1.2rem" class="mt-2">
@@ -159,6 +169,7 @@ export default {
 			totalVoters: null,
 			cacheKey: +new Date(),
 			intervalImg: null,
+			fetchError: false,
 		};
 	},
 	mounted() {
@@ -185,8 +196,13 @@ export default {
 					if (e.response) {
 						console.log(e.response);
 						if (e.response.status === 404) {
+							this.pageReady = true;
 							this.notFound = true;
+						} else {
+							this.fetchError = true;
 						}
+					} else {
+						this.fetchError = true;
 					}
 				});
 		},

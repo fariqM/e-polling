@@ -50,18 +50,18 @@ export default {
 			btnLoading: false,
 		};
 	},
-	mounted() {
-		toast.success({
-			title: "Joined to POLLING!",
-			message: "you will be redirected to the home page in 5 seconds.",
-			position: "topCenter",
-			timeout: false,
-			// ballon:true,
-			transitionInMobile: "fadeInRight",
-			transitionOutMobile: "fadeOutRight",
-			displayMode: 2,
-		});
-	},
+	// mounted() {
+	// 	toast.success({
+	// 		title: "Joined to POLLING!",
+	// 		message: "you will be redirected to the home page in 5 seconds.",
+	// 		position: "topCenter",
+	// 		timeout: false,
+	// 		// ballon:true,
+	// 		transitionInMobile: "fadeInRight",
+	// 		transitionOutMobile: "fadeOutRight",
+	// 		displayMode: 2,
+	// 	});
+	// },
 	// beforeDestroy() {
 	// 	document.removeEventListener("backbutton", this.yourCallBackFunction());
 	// },

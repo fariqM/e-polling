@@ -243,11 +243,12 @@ export default {
 	},
 	watch: {
 		networkError: function (newVal) {
+			
 			if (newVal) {
-				this.contentHeight += 48;
+				this.contentHeight += 85;
 			} else {
 				setTimeout(() => {
-					this.contentHeight -= 48;
+					this.contentHeight -= 85;
 				}, 350);
 			}
 		},
