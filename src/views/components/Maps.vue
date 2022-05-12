@@ -72,6 +72,7 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 // import KrianPolygon from "../data/krian";
 import PonokawanPolygon from "../../data/ponokawan";
 import MojosantrenPolygon from "../../data/mojosantren";
+import SSPolygon from "../../data/surabayaselatan"
 // import UinsaPolygon from "../data/uinsa";
 // import BayangPolygon from "../data/bayang";
 // import SinfPolygon from "../data/sinf";
@@ -179,7 +180,7 @@ export default {
 		},
 		ray_casting(point) {
 			// console.log("start calculating");
-			var polygon = MojosantrenPolygon[0];
+			var polygon = SSPolygon[0];
 			var n = polygon.length,
 				is_in = false,
 				x = point[0],
@@ -256,12 +257,14 @@ export default {
 				// center: [-68.137343, 45.137451],
 				// mojo
 				// center: [112.59022972070082, -7.404347711911719],
-				// ponokawan
-				center: [112.59364659438573, -7.397667849535032],
+				// ponokawan		
+				// center: [112.59364659438573, -7.397667849535032],
 				// uinsa
 				// center: [112.73398445302192, -7.322578854199146],
+				// surabaya selatan
+				center: [ 112.73491043392997, -7.324042732086342],
 
-				zoom: 14,
+				zoom: 10,
 			});
 
 			// const marker2 = new mapboxgl.Marker({ color: "black", rotation: 45 })
@@ -281,7 +284,7 @@ export default {
 							type: "Polygon",
 							// These coordinates outline Maine.
 							// coordinates: PonokawanPolygon,
-							coordinates: MojosantrenPolygon,
+							coordinates: SSPolygon,
 						},
 					},
 				});

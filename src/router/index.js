@@ -11,8 +11,7 @@ import MyPoll from '../views/menu/MyPolling'
 import ReqDetails from '../views/Reqdetails'
 import ShowPoll from '../views/ShowMyPoll'
 import EditPoll from '../views/EditPoll'
-
-
+import MapsEx from '../views/MapsExample'
 
 Vue.use(VueRouter)
 
@@ -74,6 +73,12 @@ const routes = [
     name: 'polling',
     component: Polling
   },
+  {
+    path: '/map/example',
+    name: 'map.example',
+    component: MapsEx
+  },
+  
 ]
 
 const router = new VueRouter({

@@ -666,7 +666,7 @@ export default {
 					.then((response) => {
 						this.loadingBtn = false;
 						this.$router.replace({ name: "my.poll" });
-						console.log(response);
+						// console.log(response);
 					})
 					.catch((e) => {
 						this.loadingBtn = false;

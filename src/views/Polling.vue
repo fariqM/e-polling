@@ -19,6 +19,7 @@
 			indeterminate
 			absolute
 			color="primary"
+			style="margin-top: 48px"
 			v-if="loadingBar"
 		></v-progress-linear>
 
@@ -123,14 +124,14 @@
 									<v-btn v-if="error_CheckDevice" outlined color="primary" tile>
 										Back
 									</v-btn>
-									<v-btn
+									<!-- <v-btn
 										v-if="!error_CheckDevice"
 										small
 										class="mt-4"
 										color="primary"
 										text
 										><u>See Why ?</u></v-btn
-									>
+									> -->
 								</div>
 								<!-- end step device chek -->
 
@@ -207,7 +208,9 @@
 					<v-img
 						v-if="polling.q_img !== null"
 						width="100%"
-						:src="`${serverUrl}storage/img/${polling.q_img}`  + '?rnd=' + cacheKey"
+						:src="
+							`${serverUrl}storage/img/${polling.q_img}` + '?rnd=' + cacheKey
+						"
 						:lazy-src="require('../assets/logo.png')"
 						contain
 					>
@@ -254,7 +257,11 @@
 									</div>
 									<v-avatar tile size="60" v-if="answer.a_img !== null">
 										<v-img
-											:src="`${serverUrl}storage/img/answers/${answer.a_img}`  + '?rnd=' + cacheKey"
+											:src="
+												`${serverUrl}storage/img/answers/${answer.a_img}` +
+												'?rnd=' +
+												cacheKey
+											"
 											:lazy-src="require('../assets/logo.png')"
 										/>
 									</v-avatar>
@@ -263,7 +270,14 @@
 						</div>
 					</div>
 					<div
-						class="submit-btn shadow-box d-flex justify-space-between align-center px-3"
+						class="
+							submit-btn
+							shadow-box
+							d-flex
+							justify-space-between
+							align-center
+							px-3
+						"
 					>
 						<v-btn text outlined tile color="info">
 							<v-icon>mdi-star-circle</v-icon>
@@ -288,7 +302,7 @@
 			<div
 				class="d-flex justify-center align-center"
 				style="height: 100%"
-				v-if="!pageReady"
+				v-if="!pageReady && !fetchError"
 			>
 				<div v-if="notFound">
 					<div style="font-size: 5rem; font-weight: 600">404</div>
@@ -296,8 +310,11 @@
 						Oops your polling is not found or expired.
 					</div>
 				</div>
-				<v-icon size="70" color="primary" v-else style="margin-top: 5rem">mdi-reload</v-icon>
+				<v-icon size="70" color="primary" v-else style="margin-top: 5rem"
+					>mdi-reload</v-icon
+				>
 			</div>
+			<page-error v-if="fetchError"/>
 		</v-main>
 	</div>
 </template>
@@ -305,10 +322,11 @@
 <script>
 import { Device } from "@capacitor/device";
 import Maps from "./components/Maps.vue";
+import PageError from "./components/E500.vue"
 
 export default {
 	components: {
-		Maps,
+		Maps, PageError
 	},
 	data() {
 		return {
@@ -331,6 +349,7 @@ export default {
 			error_CheckDevice: false,
 			error_Maps: false,
 			errors: {},
+			fetchError: false,
 			checkBtn: false,
 			other_forms: {
 				name: "",
@@ -347,7 +366,6 @@ export default {
 			selectedAnswer: null,
 			submitDisabled: true,
 			cacheKey: +new Date(),
-
 		};
 	},
 	watch: {
@@ -599,10 +617,17 @@ export default {
 					}
 				})
 				.catch((e) => {
-					console.log(e.response);
+					this.loadingBar = false;
 					console.log(e);
 					if (e.response) {
-						this.notFound = true;
+						console.log(e.response);
+						if (e.response.status == 404) {
+							this.notFound = true;
+						} else {
+							this.fetchError = true;
+						}
+					} else {
+						this.fetchError = true;
 					}
 				});
 		},

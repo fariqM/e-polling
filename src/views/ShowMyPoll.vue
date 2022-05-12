@@ -11,16 +11,7 @@
 			</v-btn>
 		</v-app-bar>
 		<v-main style="width: 100%">
-			<div
-				v-if="fetchError"
-				style="display: flex; flex-flow: column; margin-top: 48px"
-			>
-				<div style="flex: 1 1 auto" class="info">
-					<div style="max-height:calc(100vh - 48px)">
-						<v-img :src="require('../assets/404Page.png')" max-height="calc(100vh - 48px)"/>
-					</div>
-				</div>
-			</div>
+			<page-error v-if="fetchError"/>
 			<div
 				class="d-flex justify-center align-center"
 				style="height: 80%"
@@ -154,9 +145,13 @@
 
 <script>
 import { Clipboard } from "@capacitor/clipboard";
-// import { Clipboard } from "@awesome-cordova-plugins/clipboard"
+import PageError from "./components/E500.vue"
 
 export default {
+	components: {
+		PageError
+	},
+
 	data() {
 		return {
 			serverUrl: window.__BASE_URL__,

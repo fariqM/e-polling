@@ -429,6 +429,29 @@
 					</v-card>
 				</v-dialog>
 			</v-row>
+			<v-dialog v-model="deleteLoading" persistent>
+				<v-card tile>
+					<v-card-text>
+						<!-- <v-card-text> Deleting... </v-card-text> -->
+						<div
+							style="
+								font-size: 0.875rem;
+								font-weight: 400;
+								line-height: 1.375rem;
+								letter-spacing: 0.0071428571em;
+							"
+							class="my-1"
+						>
+							Deleting...
+						</div>
+						<v-progress-linear
+							indeterminate
+							color="prim-grad"
+							class="mb-0"
+						></v-progress-linear>
+					</v-card-text>
+				</v-card>
+			</v-dialog>
 		</v-main>
 	</div>
 </template>
@@ -478,6 +501,7 @@ export default {
 			serverUrl: window.__BASE_URL__,
 			cacheKey: +new Date(),
 			intervalImg: null,
+			deleteLoading: false,
 		};
 	},
 	beforeRouteEnter(to, from, next) {
@@ -523,6 +547,18 @@ export default {
 		},
 	},
 	methods: {
+		showToastError() {
+			toast.error({
+				title: "Something went wrong",
+				message: "Something went wrong, please try again later.",
+				position: "topCenter",
+				timeout: 2500,
+				// ballon:true,
+				transitionInMobile: "fadeInRight",
+				transitionOutMobile: "fadeOutRight",
+				displayMode: 2,
+			});
+		},
 		setModel() {
 			if (this.polling.q_img !== null) {
 				// console.log(`${this.serverUrl}storage/img/${this.polling.q_img}`);
@@ -559,6 +595,12 @@ export default {
 			}
 		},
 		prependIconCallback(idx) {
+			console.log(this.answers[idx]);
+			const remove = () => {
+				this.answers.splice(idx, 1);
+			};
+			// console.log(this.answers);
+
 			if (this.answers.length <= 2) {
 				toast.warning({
 					// title: "Att",
@@ -571,7 +613,26 @@ export default {
 					displayMode: 2,
 				});
 			} else {
-				this.answers.splice(idx, 1);
+				if (this.answers[idx].id !== null) {
+					this.deleteLoading = true;
+					axios
+						.delete(`a/${this.answers[idx].id}/${this.answers[idx].polling_id}`)
+						.then((response) => {
+							this.deleteLoading = false;
+							remove();
+						})
+						.catch((e) => {
+							this.deleteLoading = false;
+							this.showToastError();
+							console.log(e);
+							if (e.response) {
+								console.log(e.response);
+							}
+						});
+					// console.log("ada");
+				} else {
+					remove();
+				}
 			}
 		},
 		addImage(idx) {
@@ -721,13 +782,21 @@ export default {
 					.then((response) => {
 						this.loadingBtn = false;
 						this.$router.replace({ name: "my.poll" });
-						console.log(response);
+						// console.log(response);
 					})
 					.catch((e) => {
 						this.loadingBtn = false;
-						// console.log(e);
-						Object.assign(this.errors, e.response.data.errors);
-						console.log(e.response);
+						console.log(e);
+						if (e.response) {
+							console.log(e.response);
+							if (e.response.status == 422) {
+								Object.assign(this.errors, e.response.data.errors);
+							} else {
+								this.showToastError();
+							}
+						} else {
+							this.showToastError();
+						}
 					});
 			});
 
