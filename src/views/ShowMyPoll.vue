@@ -181,6 +181,7 @@ export default {
 			axios
 				.get(`my-poll/${ownerId}/${dir}`)
 				.then((response) => {
+					// console.log(response);
 					this.link = `https://polling-pol.site/p/${dir}`;
 					this.polling = response.data.data;
 					this.totalVoters = this.countVotes(this.polling.answers);
