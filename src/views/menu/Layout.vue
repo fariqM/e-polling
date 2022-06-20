@@ -79,6 +79,12 @@ export default {
 					title: "POLLING",
 					path: { name: "my.poll" },
 				},
+				{
+					id: "poll",
+					icon: "mdi-crosshairs",
+					title: "Test",
+					path: { name: "algo.test" },
+				},
 			],
 		};
 	},

@@ -26,11 +26,11 @@ window.toast = izi_Toast
 
 Vue.config.productionTip = false
 
-// const __BASE_URL_SERVER = 'http://192.168.1.7:8888/';
+const __BASE_URL_SERVER = 'http://192.168.1.7:8888/';
 // const __BASE_URL_SERVER = 'https://poll-polling.test/';
 // const __BASE_URL_SERVER = 'https://poll-polling.site/';
 // const __BASE_URL_SERVER = 'https://608f-103-211-49-130.ngrok.io/';
-const __BASE_URL_SERVER = 'https://polling.anmello.com/';
+// const __BASE_URL_SERVER = 'https://polling.anmello.com/';
 
 
 const __API_PREFIX = 'api'

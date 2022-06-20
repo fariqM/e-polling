@@ -13,6 +13,9 @@ import ShowPoll from '../views/ShowMyPoll'
 import EditPoll from '../views/EditPoll'
 import MapsEx from '../views/MapsExample'
 
+import AlgoTest from '../views/menu/AlgoTest'
+
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -45,6 +48,11 @@ const routes = [
         path: 'account',
         name: 'account',
         component: Account
+      },
+      {
+        path: 'algo-test',
+        name: 'algo.test',
+        component: AlgoTest
       },
     ]
   },
