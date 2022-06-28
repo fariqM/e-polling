@@ -31,7 +31,7 @@
 					@click:append="pasteLink"
 					:error-messages="err_msg"
 				></v-text-field>
-				<v-btn tile @click="goToPoll" class="prim-grad" :loading="btnLoading"
+				<v-btn tile :to="{name:'map.example'}" class="prim-grad" :loading="btnLoading"
 					>Go to Polling</v-btn
 				>
 			</v-col>

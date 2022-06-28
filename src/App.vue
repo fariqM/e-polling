@@ -1,5 +1,5 @@
 <template>
-	<v-app style="height: 100%">
+	<v-app style="height: 100%" :style="{ height: '100%', background: '#12121200' }">
 		<div style="max-width: 30.5rem; width: 100vw; height: 100%">
 			<router-view />
 		</div>

@@ -11,7 +11,7 @@ import MyPoll from '../views/menu/MyPolling'
 import ReqDetails from '../views/Reqdetails'
 import ShowPoll from '../views/ShowMyPoll'
 import EditPoll from '../views/EditPoll'
-import MapsEx from '../views/MapsExample'
+import MapsEx from '../views/GM'
 
 Vue.use(VueRouter)
 
