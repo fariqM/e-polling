@@ -66,6 +66,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import MojosantrenPolygon from "../../data/mojosantren";
 import OuterMojo from "../../data/outer_mojo";
 import randomPosition from "random-position-in-polygon";
+import polygon from "@/data/bayang";
 
 export default {
 	data() {
@@ -111,20 +112,20 @@ export default {
 			this.timeResult.wn = [];
 		},
 		clearPoint() {
-			this.markers.forEach(element => {
-				element.remove()
+			this.markers.forEach((element) => {
+				element.remove();
 			});
 			this.markers = [];
 			this.coords = [];
 		},
-		windingNumber(point, polyg) {
+		windingNumber(point, vs) {
 			function isLeft(P0, P1, P2) {
 				let res =
 					(P1[0] - P0[0]) * (P2[1] - P0[1]) - (P2[0] - P0[0]) * (P1[1] - P0[1]);
 				return res;
 			}
 
-			var vs = polyg[0];
+			// var vs = polyg[0];
 			const x = point[0],
 				y = point[1];
 			let wn = 0;
@@ -153,7 +154,6 @@ export default {
 		},
 		rayCasting(point, polyg) {
 			var polygon = polyg[0];
-
 			//A point is in a polygon if a line from the point to infinity crosses the polygon an odd number of times
 			let odd = false;
 			//For each edge (In this case for each point of the polygon and the previous one)
@@ -172,30 +172,29 @@ export default {
 				}
 				j = i;
 			}
-			//If the number of crossings was odd, the point is in the polygon
 			return odd;
+		},
 
-			// var n = polygon.length,
-			// 	is_in = false,
-			// 	x = point[0],
-			// 	y = point[1],
-			// 	x1,
-			// 	x2,
-			// 	y1,
-			// 	y2;
-			// // console.log("length n => " + n);
-			// for (var i = 0; i < n - 1; ++i) {
-			// 	x1 = polygon[i][0];
-			// 	x2 = polygon[i + 1][0];
-			// 	y1 = polygon[i][1];
-			// 	y2 = polygon[i + 1][1];
-			// 	// console.log("processing...");
-			// 	if (y < y1 != y < y2 && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1) {
-			// 		is_in = !is_in;
-			// 	}
-			// }
+		PNPoly(point, vs) {
+			var x = point[0],
+				y = point[1];
+			var inside = false;
 
-			// return is_in;
+			for (let i = 0, j = vs.length - 1; i < vs.length; i++) {
+				var xi = vs[i][0],
+					yi = vs[i][1];
+				var xj = vs[j][0],
+					yj = vs[j][1];
+
+				var intersect =
+					yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+
+				if (intersect) {
+					inside = !inside;
+				}
+				j = i;
+			}
+			return inside;
 		},
 
 		changeColor() {
@@ -227,8 +226,149 @@ export default {
 			}
 		},
 
+		newRayCasting(test_point, boundary) {
+			let p0 = boundary[boundary.length - 1];
+			let ctr = 0;
+			boundary.forEach((p1, i) => {
+				// skip the vertex that lies on X positif of ray
+				if (p1[1] === test_point[1]) {
+					return;
+				}
+				// ignore collinear
+				// and edge must be cross y of test_point
+				// var xPositif = p0[0] >= test_point[0] && p1[0] >= test_point;
+				if (
+					p0[1] > test_point[1] !== p1[1] > test_point[1] &&
+					p0[1] !== p1[1]
+					// && xPositif
+				) {
+					let interp = (test_point[1] - p0[1]) / (p1[1] - p0[1]);
+					// Must crosY
+					if (interp >= 0 && interp < 1) {
+						ctr++;
+						let long = interp * p1[0] + (1 - interp) * p0[0];
+						var LinerInterp =
+							p0[0] +
+							((p1[0] - p0[0]) / (p1[0] - p0[0])) * (test_point[0] - p0[0]);
+
+						console.log("long", long);
+						console.log("LinerInterp", LinerInterp);
+
+						// check for -X
+						if (long > test_point[0]) {
+							ctr++;
+						}
+					}
+				}
+				p0 = p1;
+			});
+			return ctr % 2 === 0 ? false : true;
+		},
+
+		algo7(R, boundary) {
+			let P0 = boundary[0];
+			if (P0[1] == R[1] && P0[0] == R[0]) {
+				return true;
+			}
+			let w = 0;
+			for (let i = 0; i < boundary.length; i++) {
+				let P1 = boundary[i];
+				const detI =
+					(P0[0] - R[0]) * (P1[1] - R[1]) - (P1[0] - R[0]) * (P0[1] - R[1]);
+				const right_crossing = detI > 0 == P1[1] > P0[1];
+
+				if (P1[1] == R[1]) {
+					if (P1[0] == R[0]) {
+						return true;
+					} else {
+						if (P0[1] == R[1] && P1[0] > R[0] == P0[0] < R[0]) {
+							continue;
+						}
+					}
+				}
+				if (P0[1] < R[1] !== P1[1] < R[1]) {
+					if (P0[0] >= R[0]) {
+						if (P1[0] > R[0]) {
+							w = w + 2 * (P1[1] > P0[1]) - 1;
+						} else {
+							if (right_crossing) {
+								w = w + 2 * (P1[1] > P0[1]) - 1;
+							}
+						}
+					} else {
+						if (P1[0] > R[0]) {
+							if (right_crossing) {
+								w = w + 2 * (P1[1] > P0[1]) - 1;
+							}
+						}
+					}
+				}
+				P0 = P1;
+			}
+			return w == 0 ? false : true;
+		},
+
+		algo6(R, boundary) {
+			// Return det i = (Px i −Rx ) ∗ (Py i+1 −Ry )−(Px i+1 −Rx ) ∗ (Py i −Ry )
+			// crossing: (Pyi < Ry ) != (Pyi+1 < Ry ),
+			// modify_ω: ω = ω + 2 ∗ (Pyi+1 > Pyi ) − 1.
+			// right_crossing: (det (i) > 0) = (Pyi+1 > Pyi ),
+			let P0 = boundary[0];
+			let w = 0;
+			for (let i = 0; i < boundary.length; i++) {
+				const P1 = boundary[i];
+				const detI =
+					(P0[0] - R[0]) * (P1[1] - R[1]) - (P1[0] - R[0]) * (P0[1] - R[1]);
+				const right_crossing = detI > 0 == P1[1] > P0[1];
+				if (P0[1] < R[1] != P1[1] < R[1]) {
+					if (P0[0] >= R[0]) {
+						if (P1[0] > R[0]) {
+							w = w + 2 * (P1[1] > P0[1]) - 1;
+						} else {
+							if (right_crossing) {
+								w = w + 2 * (P1[1] > P0[1]) - 1;
+							}
+						}
+					} else {
+						if (P1[0] > R[0]) {
+							if (right_crossing) {
+								w = w + 2 * (P1[1] > P0[1]) - 1;
+							}
+						}
+					}
+				}
+
+				P0 = P1;
+			}
+			return w == 0 ? false : true;
+		},
+
+		classicRay(tp, boundary) {
+			let rc = 0,
+				n = boundary.length,
+				x = tp[0],
+				y = tp[1],
+				x0 = boundary[n - 1][0],
+				y0 = boundary[n - 1][1],
+				x1,
+				y1;
+
+			for (let i = 0; i < n; i++) {
+				x1 = boundary[i][0];
+				y1 = boundary[i][1];
+				if (y <= y0 === y > y1) {
+					if (x - x0 - ((y - y0) * (x1 - x0)) / (y1 - y0) < 0) {
+						rc++;
+					}
+				}
+				x0 = x1;
+				y0 = y1;
+			}
+			return rc % 2 === 0 ? false : true;
+		},
+
 		startRayCasting() {
-			console.log(`calculatin ${this.coords.length} point`);
+			// console.log(`calculatin ${this.coords.length} point`);
 			if (this.coords.length != 0) {
 				const newArray = [];
 				let timeResult = 0;
@@ -236,7 +376,9 @@ export default {
 				// start calculating performance
 				var startTime = performance.now();
 				this.coords.forEach((position) => {
-					newArray.push(this.rayCasting(position, MojosantrenPolygon));
+					newArray.push(this.classicRay(position, MojosantrenPolygon[0]));
+					// newArray.push(this.PNPoly(position, MojosantrenPolygon[0]));
+					// this.windingNumber(position, MojosantrenPolygon[0]);
 				});
 				var endTime = performance.now();
 				// end calculating performance
@@ -250,7 +392,7 @@ export default {
 			}
 		},
 		startWindingNumber() {
-			console.log(`calculatin ${this.coords.length} point`);
+			// console.log(`calculatin ${this.coords.length} point`);
 
 			if (this.coords.length != 0) {
 				const newArray = [];
@@ -259,7 +401,9 @@ export default {
 				// start calculating performance
 				var windingStart = performance.now();
 				this.coords.forEach((position) => {
-					newArray.push(this.windingNumber(position, MojosantrenPolygon));
+					// newArray.push(this.windingNumber(position, MojosantrenPolygon));
+					newArray.push(this.windingNumber(position, MojosantrenPolygon[0]));
+					// this.algo7(position, MojosantrenPolygon[0]);
 				});
 				var windingEnd = performance.now();
 				// end calculating performance
