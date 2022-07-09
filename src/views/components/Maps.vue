@@ -72,10 +72,15 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 // import KrianPolygon from "../data/krian";
 import PonokawanPolygon from "../../data/ponokawan";
 import MojosantrenPolygon from "../../data/mojosantren";
-import SSPolygon from "../../data/surabayaselatan"
+import SSPolygon from "../../data/mojosantren";
 // import UinsaPolygon from "../data/uinsa";
 // import BayangPolygon from "../data/bayang";
 // import SinfPolygon from "../data/sinf";
+
+import {
+	BackgroundGeolocation,
+	BackgroundGeolocationEvents,
+} from "@awesome-cordova-plugins/background-geolocation";
 
 export default {
 	props: {
@@ -106,6 +111,15 @@ export default {
 			errors: {},
 			deviceArea: null,
 			checkBtn: false,
+			config: {
+				desiredAccuracy: 10,
+				stationaryRadius: 20,
+				distanceFilter: 30,
+				startForeground: true,
+				notificationText: "w pantau ni ye awas aja pake fake GPS!",
+				debug: false, //  enable this hear sounds for background-geolocation life-cycle.
+				stopOnTerminate: false, // enable this to clear background location settings when the app terminates
+			},
 		};
 	},
 
@@ -113,7 +127,7 @@ export default {
 		myCoord(val) {
 			// console.log("change coords", val);
 			this.maps.setCenter(val);
-			this.maps.setZoom(16);
+			this.maps.setZoom(14);
 		},
 		routeLeave(newVal) {
 			console.log("clear watch");
@@ -216,37 +230,8 @@ export default {
 			}
 			return is_in;
 		},
-		// PolyTest() {
-		// 	return new Promise((resolve, reject) => {
-		// 		let point = [];
-		// 		this.getLocation()
-		// 			.then((result) => {
-		// 				point[0] = result.coords.longitude;
-		// 				point[1] = result.coords.latitude;
-
-		// 				// begin test
-		// 				const polygonTest = this.ray_casting(point, MojosantrenPolygon[0]);
-		// 				// console.log(polygonTest);
-		// 				resolve(polygonTest);
-		// 			})
-		// 			.catch((e) => {
-		// 				console.log(e);
-		// 				reject("error");
-		// 			});
-		// 	});
-		// },
 		notFocus() {
 			this.items = [];
-		},
-		querySelections(v) {
-			console.log(v);
-			axios
-				.get(
-					`https://api.mapbox.com/geocoding/v5/mapbox.places/${v}.json?country=id&proximity=ip&types=place%2Cpostcode%2Caddress%2Ccountry%2Cregion%2Cdistrict%2Clocality%2Cneighborhood%2Cpoi&access_token=pk.eyJ1IjoiYm9yZXFvZnUiLCJhIjoiY2wwNnM5dzE5MDU3czNjbHZmbGhsbGZ2MCJ9.nNAbUcoqk9PpyZS8nz0T_A`
-				)
-				.then((response) => {
-					this.items = response.data.features;
-				});
 		},
 		setMap() {
 			mapboxgl.accessToken = this.token;
@@ -257,12 +242,12 @@ export default {
 				// center: [-68.137343, 45.137451],
 				// mojo
 				// center: [112.59022972070082, -7.404347711911719],
-				// ponokawan		
+				// ponokawan
 				// center: [112.59364659438573, -7.397667849535032],
 				// uinsa
 				// center: [112.73398445302192, -7.322578854199146],
 				// surabaya selatan
-				center: [ 112.73491043392997, -7.324042732086342],
+				center: [112.73491043392997, -7.324042732086342],
 
 				zoom: 10,
 			});
@@ -460,18 +445,30 @@ export default {
 						reject(err);
 						// resolve(err);
 					} else {
-						console.log("Watchingpos", position.coords.accuracy);
-
-						console.log(err);
-						let newArray = [];
-						newArray[0] = position.coords.longitude;
-						newArray[1] = position.coords.latitude;
-
-						this.loading = false;
-						this.deviceArea = "updated";
-						this.ray_casting(newArray);
-						this.myCoord = newArray.slice();
-						resolve(newArray);
+						BackgroundGeolocation.getCurrentLocation().then(
+							(BackgroundGeolocationResponse) => {
+								// console.log(BackgroundGeolocationResponse);
+								// check if gps mocked
+								if (BackgroundGeolocationResponse.isFromMockProvider) {
+									// clear watch before leave
+									if (this.geo_coords !== null) {
+										Geolocation.clearWatch({ id: this.geo_coords });
+									}
+									this.$router.replace({ name: "home" });
+								} else {
+									console.log("Watchingpos", position.coords.accuracy);
+									console.log(err);
+									let newArray = [];
+									newArray[0] = position.coords.longitude;
+									newArray[1] = position.coords.latitude;
+									this.loading = false;
+									this.deviceArea = "updated";
+									this.ray_casting(newArray);
+									this.myCoord = newArray.slice();
+									resolve(newArray);
+								}
+							}
+						);
 					}
 				})
 					.then((id) => {

@@ -11,7 +11,9 @@
 			</v-col>
 			<v-col class="pa-0" cols="12">
 				<div class="noselect" style="font-weight: 600; font-size: 2.3rem">
-					Join poll
+					<!-- Join poll
+					<br /> -->
+					(alpha test)
 				</div>
 				<!-- <div class="d-flex justify-space-around align-center">
 					<v-btn :to="{ name: 'maps' }">Go to Map Testing</v-btn>
@@ -20,7 +22,6 @@
 			<v-col cols="12" class="noselect">
 				<v-text-field
 					outlined
-					class="mb-4"
 					clearable
 					@click="inputFocus"
 					style="border-radius: 0px"
@@ -31,8 +32,23 @@
 					@click:append="pasteLink"
 					:error-messages="err_msg"
 				></v-text-field>
-				<v-btn tile @click="goToPoll" class="prim-grad" :loading="btnLoading"
-					>Go to Polling</v-btn
+				<v-alert
+					v-if="isFakeGps"
+					dense
+					outlined
+					type="error"
+					class="mt-3"
+					transition="scale-transition"
+				>
+					Fake GPS detected! Please turn off gps faker application.
+				</v-alert>
+				<v-btn
+					v-else
+					tile
+					@click="goToPoll"
+					class="prim-grad mb-1"
+					:loading="btnLoading"
+					>Go Poll</v-btn
 				>
 			</v-col>
 		</v-row>
@@ -41,36 +57,56 @@
 
 <script>
 import { Clipboard } from "@capacitor/clipboard";
+import {
+	BackgroundGeolocation,
+	BackgroundGeolocationEvents,
+} from "@awesome-cordova-plugins/background-geolocation";
 
 export default {
 	data() {
 		return {
 			pol_address: "",
 			err_msg: "",
-			btnLoading: false,
+			btnLoading: true,
+			isFakeGps: false,
+			config: {
+				desiredAccuracy: 10,
+				stationaryRadius: 20,
+				distanceFilter: 30,
+				startForeground: true,
+				notificationText: "w pantau ni ye awas aja pake fake GPS!",
+				debug: false, //  enable this hear sounds for background-geolocation life-cycle.
+				stopOnTerminate: false, // enable this to clear background location settings when the app terminates
+			},
 		};
 	},
-	// mounted() {
-	// 	toast.success({
-	// 		title: "Joined to POLLING!",
-	// 		message: "you will be redirected to the home page in 5 seconds.",
-	// 		position: "topCenter",
-	// 		timeout: false,
-	// 		// ballon:true,
-	// 		transitionInMobile: "fadeInRight",
-	// 		transitionOutMobile: "fadeOutRight",
-	// 		displayMode: 2,
-	// 	});
-	// },
-	// beforeDestroy() {
-	// 	document.removeEventListener("backbutton", this.yourCallBackFunction());
-	// },
+	mounted() {
+		BackgroundGeolocation.configure(this.config).then(() => {
+			setInterval(() => {
+				this.startTesting();
+			}, 2000);
+		});
+	},
 	methods: {
 		async pasteLink() {
 			const { type, value } = await Clipboard.read();
 			if (type === "text/plain") {
 				this.pol_address = value;
 			}
+		},
+		startTesting() {
+			BackgroundGeolocation.getCurrentLocation().then(
+				(BackgroundGeolocationResponse) => {
+					console.log(BackgroundGeolocationResponse);
+					if (BackgroundGeolocationResponse.isFromMockProvider) {
+						this.btnLoading = false;
+						this.isFakeGps = true;
+					} else {
+						this.btnLoading = false;
+						this.isFakeGps = false;
+					}
+				}
+			);
 		},
 		goToPoll() {
 			if (this.pol_address === "") {
@@ -83,7 +119,6 @@ export default {
 				} else {
 					link = this.pol_address;
 				}
-
 				setTimeout(() => {
 					this.btnLoading = false;
 					this.$router.push({

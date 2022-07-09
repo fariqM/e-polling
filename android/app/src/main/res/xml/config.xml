@@ -2,6 +2,10 @@
 <widget version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <access origin="*" />
   
+  <feature name="BackgroundGeolocation">
+    <param name="android-package" value="com.tenforwardconsulting.bgloc.cordova.BackgroundGeolocationPlugin"/>
+  </feature>
+
   <feature name="Permissions">
     <param name="android-package" value="com.android.plugins.Permissions"/>
   </feature>
@@ -10,5 +14,12 @@
     <param name="android-package" value="cordova.plugin.RequestLocationAccuracy"/>
   </feature>
 
-  
+  <plugin name="cordova-plugin-background-geolocation" spec="@mauron85/cordova-plugin-background-geolocation@~3.1.0">
+    <variable name="GOOGLE_PLAY_SERVICES_VERSION" value="11+" />
+    <variable name="ANDROID_SUPPORT_LIBRARY_VERSION" value="26+" />
+    <variable name="ICON" value="@mipmap/ic_launcher" />
+    <variable name="SMALL_ICON" value="@mipmap/ic_launcher" />
+    <variable name="ALWAYS_USAGE_DESCRIPTION" value="App requires background tracking " />
+    <variable name="MOTION_USAGE_DESCRIPTION" value="App requires motion detection" />
+  </plugin>
 </widget>

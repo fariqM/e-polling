@@ -564,7 +564,7 @@ export default {
 			console.log("cek area  result device => " + value);
 		},
 		navigation_back() {
-			this.$router.push({ name: "home" });
+			this.$router.replace({ name: "home" });
 		},
 		getPolling() {
 			// setTimeout(() => {}, 1000);
